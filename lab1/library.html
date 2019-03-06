@@ -8,11 +8,15 @@
 <body> 
 <script src="js/three.js"></script> 
 <script src="js/OrbitControls.js"></script> 
+<script type="text/javascript" src="makeShelf.js"></script>
+<script type="text/javascript" src="makeBook.js"></script>
+<script type="text/javascript" src="makeShelfWithBooks.js"></script>
 <script> 
 
 	// Our Javascript will go here. 
 
 	var scene = new THREE.Scene();
+	scene.background = new THREE.Color( 0xffffff );
 	var camera = new THREE.PerspectiveCamera( 95, window.innerWidth / window.innerHeight, 0.1, 1000 );
 	var renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -69,104 +73,6 @@
 		
 		return g2
 	}
-
-	function makeBook() {
-        //capa do livro
-        var height = 2.5;
-        var cover_geom= new THREE.BoxGeometry(2,height,0.06)
-        var cover_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
-        var cover = new THREE.Mesh(cover_geom, cover_mat)
-        cover.position.x = 0
-        cover.position.y = 0
-
-        //lombada
-        var spine_geom= new THREE.BoxGeometry(0.06,height,0.3)
-        var spine_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
-        var spine = new THREE.Mesh(spine_geom, spine_mat)
-        spine.position.x = -1
-        spine.position.z = (0.3-0.06)/2+0.06
-        spine.position.y = 0
-        var cover2 = cover.clone()
-        cover2.position.z = 0.3+0.06
-
-        //miolo
-        var pages_geom= new THREE.BoxGeometry(2-0.05,height-0.05,0.3)
-        var pages_mat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
-        var pages = new THREE.Mesh(pages_geom, pages_mat)
-        pages.position.x = 0
-        pages.position.y = 0
-        pages.position.z = (0.3-0.06)/2+0.06
-
-        var book = new THREE.Group()
-        book.add(cover)
-        book.add(cover2)
-        book.add(spine)
-        book.add(pages)
-
-        book.position.z = 0;
-        book.position.y = 0;
-        book.position.x = 0;
-
-        return book
-    }
-
-	
-
-	function makeShelf() {
-		//vertical
-		var color_shelf = 0x8B4513;
-		var width = 7;
-		var vertical_geom= new THREE.BoxGeometry(5,15,0.1)
-		var vertical_mat= new THREE.MeshLambertMaterial({color:color_shelf})
-		var vertical = new THREE.Mesh(vertical_geom, vertical_mat)
-		vertical.position.x = 0
-		vertical.position.y = 0
-
-		var vertical2 = vertical.clone();
-		vertical2.position.z = width;
-
-		//horizontal
-		var horizontal_geom= new THREE.BoxGeometry(5,0.1,width)
-		var horizontal_mat= new THREE.MeshLambertMaterial({color:color_shelf})
-		var horizontal = new THREE.Mesh(horizontal_geom, horizontal_mat)
-		horizontal.position.x = 0
-		horizontal.position.y = 0
-		horizontal.position.z = width/2
-
-		var group = new THREE.Group();
-
-		var height = [-4.8,0,4.8]
-		for(var i=0;i<height.length;i++){
-			var new_horizontal = horizontal.clone();
-			new_horizontal.position.y = height[i];
-			group.add(new_horizontal);
-		}
-
-		group.add(vertical);
-		group.add(vertical2);
-		return group;
-	}
-
-	function makeShelfWithBooks() {
-		g_chairs=new THREE.Group()
-		var shelf = makeShelf();
-		var book = makeBook();
-		var z_0 = 0.45;
-		var number_of_books = 15;
-		var height = [-4.8+1.5,0+1.5,4.8+1.5];
-		for(var j=0;j<height.length;j++){
-			for(var i=0;i<number_of_books;i++){
-				var a = book.clone();
-				a.position.z = z_0*i + 0.03;
-				a.position.y = 3/2;
-				a.position.y = height[j];
-				g_chairs.add(a);
-			}
-		}
-		g_chairs.add(shelf);
-		return g_chairs;
-	}
-
 
 	var shelf = makeShelfWithBooks();
 	var positions = [-10,0,10];
@@ -228,9 +134,9 @@
 	var light = new THREE.AmbientLight( 0x707070 ); // soft white light
 	scene.add( light );
 
-	var light2 = new THREE.PointLight( 0xffffff, 0.7, 1000 );
-	light2.position.set( 0, 0, 24 );
-	scene.add( light2 );
+	// var light2 = new THREE.PointLight( 0xffffff, 0.7, 1000 );
+	// light2.position.set( 0, 0, 24 );
+	// scene.add( light2 );
 
 	var t=0
 	var animate = function () {
