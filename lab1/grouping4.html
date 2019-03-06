@@ -1,0 +1,251 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+<meta charset=utf-8> 
+<title>My first three.js app</title> 
+<style> body { margin: 0; } canvas { width: 100%; height: 100% } </style> 
+</head> 
+<body> 
+<script src="js/three.js"></script> 
+<script src="js/OrbitControls.js"></script> 
+<script> 
+
+	// Our Javascript will go here. 
+
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera( 95, window.innerWidth / window.innerHeight, 0.1, 1000 );
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+
+	camera.position.z = 20;
+	camera.position.x = 20;
+	camera.position.y = 10;
+
+	var controls = new THREE.OrbitControls( camera );
+
+	var axesHelper = new THREE.AxesHelper( 5 );
+	scene.add( axesHelper );
+
+	function makeChair(col=0xFFCC22)
+	{
+
+		var leg_geom= new THREE.BoxGeometry(0.3,2.0,0.3)
+		var leg_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
+		var leg = new THREE.Mesh(leg_geom, leg_mat)
+
+		positions=[ [0,0], [1.5, 0], [1.5, 1.5], [0, 1.5] ]
+
+		var g= new THREE.Group()
+		for (var i=0; i<positions.length; i++)
+		{
+			x=positions[i][0]
+			z=positions[i][1]
+			m = leg.clone()
+			m.position.x=x
+			m.position.z=z
+			m.position.y=0
+			g.add(m)
+		}
+
+		var seat_geom = new THREE.BoxGeometry(1.8,0.2,1.8)
+		var seat_mat= new THREE.MeshLambertMaterial({color:col})
+		var seat=new THREE.Mesh(seat_geom,seat_mat)
+
+		seat.position.set(0.75,1.0,0.75)
+
+		var backrest_geom = new THREE.BoxGeometry(1.8,2.0,0.2)
+		var backrest_mat= new THREE.MeshLambertMaterial({color:col})
+		var backrest=new THREE.Mesh(backrest_geom,backrest_mat)
+
+		backrest.position.set(0.75,2.0,0.0)
+
+
+
+		var g2 = new THREE.Group()
+		g2.add(g)
+		g2.add(seat)
+		g2.add(backrest)
+		
+		return g2
+	}
+
+	function makeBook() {
+        //capa do livro
+        var height = 2.5;
+        var cover_geom= new THREE.BoxGeometry(2,height,0.06)
+        var cover_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
+        var cover = new THREE.Mesh(cover_geom, cover_mat)
+        cover.position.x = 0
+        cover.position.y = 0
+
+        //lombada
+        var spine_geom= new THREE.BoxGeometry(0.06,height,0.3)
+        var spine_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
+        var spine = new THREE.Mesh(spine_geom, spine_mat)
+        spine.position.x = -1
+        spine.position.z = (0.3-0.06)/2+0.06
+        spine.position.y = 0
+        var cover2 = cover.clone()
+        cover2.position.z = 0.3+0.06
+
+        //miolo
+        var pages_geom= new THREE.BoxGeometry(2-0.05,height-0.05,0.3)
+        var pages_mat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
+        var pages = new THREE.Mesh(pages_geom, pages_mat)
+        pages.position.x = 0
+        pages.position.y = 0
+        pages.position.z = (0.3-0.06)/2+0.06
+
+        var book = new THREE.Group()
+        book.add(cover)
+        book.add(cover2)
+        book.add(spine)
+        book.add(pages)
+
+        book.position.z = 0;
+        book.position.y = 0;
+        book.position.x = 0;
+
+        return book
+    }
+
+	
+
+	function makeShelf() {
+		//vertical
+		var color_shelf = 0x8B4513;
+		var width = 7;
+		var vertical_geom= new THREE.BoxGeometry(5,15,0.1)
+		var vertical_mat= new THREE.MeshLambertMaterial({color:color_shelf})
+		var vertical = new THREE.Mesh(vertical_geom, vertical_mat)
+		vertical.position.x = 0
+		vertical.position.y = 0
+
+		var vertical2 = vertical.clone();
+		vertical2.position.z = width;
+
+		//horizontal
+		var horizontal_geom= new THREE.BoxGeometry(5,0.1,width)
+		var horizontal_mat= new THREE.MeshLambertMaterial({color:color_shelf})
+		var horizontal = new THREE.Mesh(horizontal_geom, horizontal_mat)
+		horizontal.position.x = 0
+		horizontal.position.y = 0
+		horizontal.position.z = width/2
+
+		var group = new THREE.Group();
+
+		var height = [-4.8,0,4.8]
+		for(var i=0;i<height.length;i++){
+			var new_horizontal = horizontal.clone();
+			new_horizontal.position.y = height[i];
+			group.add(new_horizontal);
+		}
+
+		group.add(vertical);
+		group.add(vertical2);
+		return group;
+	}
+
+	function makeShelfWithBooks() {
+		g_chairs=new THREE.Group()
+		var shelf = makeShelf();
+		var book = makeBook();
+		var z_0 = 0.45;
+		var number_of_books = 15;
+		var height = [-4.8+1.5,0+1.5,4.8+1.5];
+		for(var j=0;j<height.length;j++){
+			for(var i=0;i<number_of_books;i++){
+				var a = book.clone();
+				a.position.z = z_0*i + 0.03;
+				a.position.y = 3/2;
+				a.position.y = height[j];
+				g_chairs.add(a);
+			}
+		}
+		g_chairs.add(shelf);
+		return g_chairs;
+	}
+
+
+	var shelf = makeShelfWithBooks();
+	var positions = [-10,0,10];
+	var shelfGroup = new THREE.Group();
+	for (var i=0;i<positions.length;i++){
+		var a = shelf.clone();
+		a.position.x = positions[i];
+		a.position.y = +7.5;
+		shelfGroup.add(a);
+	}
+	scene.add(shelfGroup);
+
+
+
+	planegeom=new THREE.PlaneGeometry(50,70)
+	planemat= new THREE.MeshLambertMaterial({color:0xCCCC55})
+	plane= new THREE.Mesh(planegeom, planemat)
+	plane.rotation.x=-Math.PI/2.0
+	scene.add(plane)
+
+	var a = plane.clone();
+	a.material = plane.material.clone();
+	a.position.y = 25;
+	a.rotation.x = Math.PI/2;
+	a.material.color.set(0x000022);
+	scene.add(a);
+
+	a = plane.clone();
+	a.material = plane.material.clone();
+	a.rotation.x = Math.PI;
+	a.position.y = 25/2;
+	a.position.z = 35;
+	a.scale.set(1,25/70,1);
+	a.material.color.set(0x00FF00);
+	scene.add(a);
+
+	a = plane.clone();
+	a.material = plane.material.clone();
+	a.rotation.x = Math.PI;
+	a.rotation.y = Math.PI;
+	a.position.y = 25/2;
+	a.position.z = -35;
+	a.scale.set(1,25/70,1);
+	a.material.color.set(0x0000FF);
+	scene.add(a);
+
+	a = plane.clone();
+	a.material = plane.material.clone();
+	a.rotation.x = Math.PI;
+	a.rotation.y = Math.PI/2;
+	a.position.y = 25/2;
+	a.position.x = -50/2;
+	a.scale.set(70/50,25/70,1);
+	a.material.color.set(0xFF0000);
+	scene.add(a);
+	
+
+
+	var light = new THREE.AmbientLight( 0x707070 ); // soft white light
+	scene.add( light );
+
+	var light2 = new THREE.PointLight( 0xffffff, 0.7, 1000 );
+	light2.position.set( 0, 0, 24 );
+	scene.add( light2 );
+
+	var t=0
+	var animate = function () {
+		requestAnimationFrame( animate );
+		controls.update()
+			t=(t+1)%60
+		
+		// light2.color.g=Math.abs(Math.sin(t*Math.PI/30.0))
+
+		renderer.render( scene, camera );
+	};
+				
+
+	animate()
+
+</script> 
+</body> 
+</html>
