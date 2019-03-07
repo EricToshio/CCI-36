@@ -2,7 +2,7 @@
 <html> 
 <head> 
 <meta charset=utf-8> 
-<title>My first three.js app</title> 
+<title>Library</title> 
 <style> body { margin: 0; } canvas { width: 100%; height: 100% } </style> 
 </head> 
 <body> 
@@ -11,9 +11,8 @@
 <script type="text/javascript" src="makeShelf.js"></script>
 <script type="text/javascript" src="makeBook.js"></script>
 <script type="text/javascript" src="makeShelfWithBooks.js"></script>
+<script type="text/javascript" src="makeDesk.js"></script>
 <script> 
-
-	// Our Javascript will go here. 
 
 	var scene = new THREE.Scene();
 	scene.background = new THREE.Color( 0xffffff );
@@ -84,6 +83,19 @@
 		shelfGroup.add(a);
 	}
 	scene.add(shelfGroup);
+
+	var desk = makeDesk();
+	var positions = [-15,0,15];
+	var position_z =  25
+	var deskGroup = new THREE.Group();
+	for (var i=0;i<positions.length;i++){
+		var a = desk.clone();
+		a.position.x = positions[i];
+		a.position.z = position_z;
+		a.position.y = 0;
+		deskGroup.add(a);
+	}
+	scene.add(deskGroup);
 
 
 
