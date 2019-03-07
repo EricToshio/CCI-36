@@ -98,12 +98,43 @@
 	scene.add(deskGroup);
 
 
+	// piso
+	tile_square_geo = new THREE.PlaneGeometry(10,10)
+	tile_square_mat = new THREE.MeshStandardMaterial({color:0x000000})
+	tile_square     = new THREE.Mesh(tile_square_geo, tile_square_mat)
+	tile_square.rotation.x = -Math.PI/2.0
+	tile_square.position.x = -20
+	tile_square.position.z = -30
 
+	var tileGroup = new THREE.Group();
+	for (var i=0;i<=6;i++){
+		for(var j=0;j<=4;j++){
+			if( (i%2 == 0 && j%2 == 0) || (i%2 == 1 && j%2 == 1) ) {
+				var tileAdd = tile_square.clone();
+				tileAdd.position.x = -20 + j*10;
+				tileAdd.position.z = -30 + i*10;
+				tileGroup.add(tileAdd);	
+			} else {
+				var tileAdd = tile_square.clone();
+				tileAdd.material = tile_square.material.clone();
+				tileAdd.material.color.set(0xFFFFFF);
+				tileAdd.position.x = -20 + j*10;
+				tileAdd.position.z = -30 + i*10;
+				tileGroup.add(tileAdd);	
+			}
+		}
+	}
+
+	var floor = new THREE.Group();
+	floor.add(tileGroup);
+	scene.add(floor);
+
+	// paredes
 	planegeom=new THREE.PlaneGeometry(50,70)
-	planemat= new THREE.MeshLambertMaterial({color:0xCCCC55})
+	planemat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
 	plane= new THREE.Mesh(planegeom, planemat)
 	plane.rotation.x=-Math.PI/2.0
-	scene.add(plane)
+
 
 	var a = plane.clone();
 	a.material = plane.material.clone();
@@ -150,6 +181,10 @@
 	// light2.position.set( 0, 0, 24 );
 	// scene.add( light2 );
 
+	var spotLight = new THREE.SpotLight( 0xffffff );
+	spotLight.position.set( 0, 24, 0 );
+	scene.add( spotLight );
+
 	var t=0
 	var animate = function () {
 		requestAnimationFrame( animate );
@@ -157,6 +192,11 @@
 			t=(t+1)%60
 		
 		// light2.color.g=Math.abs(Math.sin(t*Math.PI/30.0))
+		if(t == 30) {
+			spotLight.color.setHex(0x000000);
+		} else if(t == 33){
+			spotLight.color.setHex(0xFFFFFF);
+		}
 
 		renderer.render( scene, camera );
 	};
