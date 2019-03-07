@@ -1,18 +1,20 @@
-<!DOCTYPE html> 
-<html> 
-<head> 
-<meta charset=utf-8> 
-<title>Library</title> 
-<style> body { margin: 0; } canvas { width: 100%; height: 100% } </style> 
-</head> 
-<body> 
-<script src="js/three.js"></script> 
-<script src="js/OrbitControls.js"></script> 
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Library</title>
+<style> body { margin: 0; } canvas { width: 100%; height: 100% } </style>
+</head>
+<body>
+<script src="js/three.js"></script>
+<script src="js/OrbitControls.js"></script>
 <script type="text/javascript" src="makeShelf.js"></script>
 <script type="text/javascript" src="makeBook.js"></script>
 <script type="text/javascript" src="makeShelfWithBooks.js"></script>
 <script type="text/javascript" src="makeDesk.js"></script>
-<script> 
+<script type="text/javascript" src="makeCircle.js"></script>
+
+<script>
 
 	var scene = new THREE.Scene();
 	scene.background = new THREE.Color( 0xffffff );
@@ -69,7 +71,7 @@
 		g2.add(g)
 		g2.add(seat)
 		g2.add(backrest)
-		
+
 		return g2
 	}
 
@@ -98,6 +100,19 @@
 	scene.add(deskGroup);
 
 
+	var circle = makeCircle();
+	var positions = [-15,0,15];
+	var position_z =  -25
+	var circleGroup = new THREE.Group();
+	for (var i=0;i<positions.length;i++){
+		var a = circle.clone();
+		a.position.x = positions[i];
+		a.position.z = position_z;
+		a.position.y = 0;
+		circleGroup.add(a);
+	}
+	scene.add(circleGroup);
+
 	// piso
 	tile_square_geo = new THREE.PlaneGeometry(10,10)
 	tile_square_mat = new THREE.MeshStandardMaterial({color:0x000000})
@@ -113,14 +128,14 @@
 				var tileAdd = tile_square.clone();
 				tileAdd.position.x = -20 + j*10;
 				tileAdd.position.z = -30 + i*10;
-				tileGroup.add(tileAdd);	
+				tileGroup.add(tileAdd);
 			} else {
 				var tileAdd = tile_square.clone();
 				tileAdd.material = tile_square.material.clone();
 				tileAdd.material.color.set(0xFFFFFF);
 				tileAdd.position.x = -20 + j*10;
 				tileAdd.position.z = -30 + i*10;
-				tileGroup.add(tileAdd);	
+				tileGroup.add(tileAdd);
 			}
 		}
 	}
@@ -171,7 +186,7 @@
 	a.scale.set(70/50,25/70,1);
 	a.material.color.set(0xFF0000);
 	scene.add(a);
-	
+
 
 
 	var light = new THREE.AmbientLight( 0x707070 ); // soft white light
@@ -190,7 +205,7 @@
 		requestAnimationFrame( animate );
 		controls.update()
 			t=(t+1)%60
-		
+
 		// light2.color.g=Math.abs(Math.sin(t*Math.PI/30.0))
 		if(t == 30) {
 			spotLight.color.setHex(0x000000);
@@ -200,10 +215,10 @@
 
 		renderer.render( scene, camera );
 	};
-				
+
 
 	animate()
 
-</script> 
-</body> 
+</script>
+</body>
 </html>
