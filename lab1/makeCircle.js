@@ -5,6 +5,7 @@ function makeCircle() {
 
     var texture = new THREE.TextureLoader().load("wood.jpg");
 
+
     //pes
 
     var leg_geom= new THREE.CylinderGeometry( 0.3, 0.1, 5, 32 );
@@ -38,5 +39,12 @@ function makeCircle() {
 
     group.add(circle);
 
+
+    var book = makeBook();
+    book.rotation.x = -Math.PI/2.0;
+    book.position.y = 5.3;
+    book.position.x = 2;
+
+    group.add(book);
     return group;
 }
