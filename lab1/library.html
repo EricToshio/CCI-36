@@ -12,6 +12,7 @@
 <script type="text/javascript" src="makeBook.js"></script>
 <script type="text/javascript" src="makeShelfWithBooks.js"></script>
 <script type="text/javascript" src="makeDesk.js"></script>
+<script type="text/javascript" src="makeChair.js"></script>
 <script type="text/javascript" src="makeCircle.js"></script>
 
 <script>
@@ -32,48 +33,7 @@
 	var axesHelper = new THREE.AxesHelper( 5 );
 	scene.add( axesHelper );
 
-	function makeChair(col=0xFFCC22)
-	{
 
-		var leg_geom= new THREE.BoxGeometry(0.3,2.0,0.3)
-		var leg_mat= new THREE.MeshLambertMaterial({color:0xFF5522})
-		var leg = new THREE.Mesh(leg_geom, leg_mat)
-
-		positions=[ [0,0], [1.5, 0], [1.5, 1.5], [0, 1.5] ]
-
-		var g= new THREE.Group()
-		for (var i=0; i<positions.length; i++)
-		{
-			x=positions[i][0]
-			z=positions[i][1]
-			m = leg.clone()
-			m.position.x=x
-			m.position.z=z
-			m.position.y=0
-			g.add(m)
-		}
-
-		var seat_geom = new THREE.BoxGeometry(1.8,0.2,1.8)
-		var seat_mat= new THREE.MeshLambertMaterial({color:col})
-		var seat=new THREE.Mesh(seat_geom,seat_mat)
-
-		seat.position.set(0.75,1.0,0.75)
-
-		var backrest_geom = new THREE.BoxGeometry(1.8,2.0,0.2)
-		var backrest_mat= new THREE.MeshLambertMaterial({color:col})
-		var backrest=new THREE.Mesh(backrest_geom,backrest_mat)
-
-		backrest.position.set(0.75,2.0,0.0)
-
-
-
-		var g2 = new THREE.Group()
-		g2.add(g)
-		g2.add(seat)
-		g2.add(backrest)
-
-		return g2
-	}
 
 	var shelf = makeShelfWithBooks();
 	var positions = [-10,0,10];
@@ -98,6 +58,20 @@
 		deskGroup.add(a);
 	}
 	scene.add(deskGroup);
+
+	var chair = makeChair();
+	var positions = [-15,0,15];
+	var position_z =  23
+	var chairGroup = new THREE.Group();
+	for (var i=0;i<positions.length;i++){
+		var a = chair.clone();
+		a.position.x = positions[i]+2;
+		a.position.z = position_z;
+		a.position.y = 0;
+		chairGroup.add(a);
+	}
+	scene.add(chairGroup);
+
 
 
 	var circle = makeCircle();
