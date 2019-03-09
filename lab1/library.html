@@ -1,198 +1,166 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset=utf-8>
-<title>Library</title>
-<style> body { margin: 0; } canvas { width: 100%; height: 100% } </style>
-</head>
-<body>
-<script src="js/three.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script type="text/javascript" src="makeShelf.js"></script>
-<script type="text/javascript" src="makeBook.js"></script>
-<script type="text/javascript" src="makeShelfWithBooks.js"></script>
-<script type="text/javascript" src="makeDesk.js"></script>
-<script type="text/javascript" src="makeChair.js"></script>
-<script type="text/javascript" src="makeCircle.js"></script>
+	<head>
+		<meta charset=utf-8>
+		<title>Library</title>
+		<style> 
+			body { margin: 0; } 
+			canvas { width: 100%; height: 100% } 
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<script type="text/javascript" src="makeShelf.js"></script>
+		<script type="text/javascript" src="makeBook.js"></script>
+		<script type="text/javascript" src="makeShelfWithBooks.js"></script>
+		<script type="text/javascript" src="makeDesk.js"></script>
+		<script type="text/javascript" src="makeChair.js"></script>
+		<script type="text/javascript" src="makeCircle.js"></script>
+		<script type="text/javascript" src="makeFloor.js"></script>
+		<script>
 
-<script>
+			//criacao dos elementos da cena necessarios para renderizar
+			var scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0xFFFFFF );
+			var camera = new THREE.PerspectiveCamera( 95, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			var renderer = new THREE.WebGLRenderer({antialias:true});
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
 
-	var scene = new THREE.Scene();
-	scene.background = new THREE.Color( 0xffffff );
-	var camera = new THREE.PerspectiveCamera( 95, window.innerWidth / window.innerHeight, 0.1, 1000 );
-	var renderer = new THREE.WebGLRenderer({antialias:true});
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( renderer.domElement );
+			camera.position.z = 20;
+			camera.position.x = 20;
+			camera.position.y = 10;
 
-	camera.position.z = 20;
-	camera.position.x = 20;
-	camera.position.y = 10;
+			var controls = new THREE.OrbitControls( camera );
 
-	var controls = new THREE.OrbitControls( camera );
+			var axesHelper = new THREE.AxesHelper( 5 );
+			scene.add( axesHelper );
 
-	var axesHelper = new THREE.AxesHelper( 5 );
-	scene.add( axesHelper );
-
-
-
-	var shelf = makeShelfWithBooks();
-	var positions = [-10,0,10];
-	var shelfGroup = new THREE.Group();
-	for (var i=0;i<positions.length;i++){
-		var a = shelf.clone();
-		a.position.x = positions[i];
-		a.position.y = +7.5;
-		shelfGroup.add(a);
-	}
-	scene.add(shelfGroup);
-
-	var desk = makeDesk();
-	var positions = [-15,0,15];
-	var position_z =  25
-	var deskGroup = new THREE.Group();
-	for (var i=0;i<positions.length;i++){
-		var a = desk.clone();
-		a.position.x = positions[i];
-		a.position.z = position_z;
-		a.position.y = 0;
-		deskGroup.add(a);
-	}
-	scene.add(deskGroup);
-
-	var chair = makeChair();
-	var positions = [-15,0,15];
-	var position_z =  23
-	var chairGroup = new THREE.Group();
-	for (var i=0;i<positions.length;i++){
-		var a = chair.clone();
-		a.position.x = positions[i]+2;
-		a.position.z = position_z;
-		a.position.y = 0;
-		chairGroup.add(a);
-	}
-	scene.add(chairGroup);
-
-
-
-	var circle = makeCircle();
-	var positions = [-15,0,15];
-	var position_z =  -25
-	var circleGroup = new THREE.Group();
-	for (var i=0;i<positions.length;i++){
-		var a = circle.clone();
-		a.position.x = positions[i];
-		a.position.z = position_z;
-		a.position.y = 0;
-		circleGroup.add(a);
-	}
-	scene.add(circleGroup);
-
-	// piso
-	tile_square_geo = new THREE.PlaneGeometry(10,10)
-	tile_square_mat = new THREE.MeshStandardMaterial({color:0x000000})
-	tile_square     = new THREE.Mesh(tile_square_geo, tile_square_mat)
-	tile_square.rotation.x = -Math.PI/2.0
-	tile_square.position.x = -20
-	tile_square.position.z = -30
-
-	var tileGroup = new THREE.Group();
-	for (var i=0;i<=6;i++){
-		for(var j=0;j<=4;j++){
-			if( (i%2 == 0 && j%2 == 0) || (i%2 == 1 && j%2 == 1) ) {
-				var tileAdd = tile_square.clone();
-				tileAdd.position.x = -20 + j*10;
-				tileAdd.position.z = -30 + i*10;
-				tileGroup.add(tileAdd);
-			} else {
-				var tileAdd = tile_square.clone();
-				tileAdd.material = tile_square.material.clone();
-				tileAdd.material.color.set(0xFFFFFF);
-				tileAdd.position.x = -20 + j*10;
-				tileAdd.position.z = -30 + i*10;
-				tileGroup.add(tileAdd);
+			
+			//criacao dos objetos da cena
+			var shelf = makeShelfWithBooks();
+			var positions = [-10,0,10];
+			var shelfGroup = new THREE.Group();
+			for (var i=0;i<positions.length;i++){
+				var a = shelf.clone();
+				a.position.x = positions[i];
+				a.position.y = +7.5;
+				shelfGroup.add(a);
 			}
-		}
-	}
+			scene.add(shelfGroup);
 
-	var floor = new THREE.Group();
-	floor.add(tileGroup);
-	scene.add(floor);
+			var desk = makeDesk();
+			var positions = [-15,0,15];
+			var position_z =  25
+			var deskGroup = new THREE.Group();
+			for (var i=0;i<positions.length;i++){
+				var a = desk.clone();
+				a.position.x = positions[i];
+				a.position.z = position_z;
+				a.position.y = 0;
+				deskGroup.add(a);
+			}
+			scene.add(deskGroup);
 
-	// paredes
-	planegeom=new THREE.PlaneGeometry(50,70)
-	planemat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
-	plane= new THREE.Mesh(planegeom, planemat)
-	plane.rotation.x=-Math.PI/2.0
+			var chair = makeChair();
+			var positions = [-15,0,15];
+			var position_z =  23
+			var chairGroup = new THREE.Group();
+			for (var i=0;i<positions.length;i++){
+				var a = chair.clone();
+				a.position.x = positions[i]+2;
+				a.position.z = position_z;
+				a.position.y = 0;
+				chairGroup.add(a);
+			}
+			scene.add(chairGroup);
 
+			var circle = makeCircle();
+			var positions = [-15,0,15];
+			var position_z =  -25
+			var circleGroup = new THREE.Group();
+			for (var i=0;i<positions.length;i++){
+				var a = circle.clone();
+				a.position.x = positions[i];
+				a.position.z = position_z;
+				a.position.y = 0;
+				circleGroup.add(a);
+			}
+			scene.add(circleGroup);
 
-	var a = plane.clone();
-	a.material = plane.material.clone();
-	a.position.y = 25;
-	a.rotation.x = Math.PI/2;
-	a.material.color.set(0x000022);
-	scene.add(a);
+			var floor = makeFloor();
+			scene.add(floor);
 
-	a = plane.clone();
-	a.material = plane.material.clone();
-	a.rotation.x = Math.PI;
-	a.position.y = 25/2;
-	a.position.z = 35;
-	a.scale.set(1,25/70,1);
-	a.material.color.set(0x00FF00);
-	scene.add(a);
-
-	a = plane.clone();
-	a.material = plane.material.clone();
-	a.rotation.x = Math.PI;
-	a.rotation.y = Math.PI;
-	a.position.y = 25/2;
-	a.position.z = -35;
-	a.scale.set(1,25/70,1);
-	a.material.color.set(0x0000FF);
-	scene.add(a);
-
-	a = plane.clone();
-	a.material = plane.material.clone();
-	a.rotation.x = Math.PI;
-	a.rotation.y = Math.PI/2;
-	a.position.y = 25/2;
-	a.position.x = -50/2;
-	a.scale.set(70/50,25/70,1);
-	a.material.color.set(0xFF0000);
-	scene.add(a);
-
-
-
-	var light = new THREE.AmbientLight( 0x707070 ); // soft white light
-	scene.add( light );
-
-	// var light2 = new THREE.PointLight( 0xffffff, 0.7, 1000 );
-	// light2.position.set( 0, 0, 24 );
-	// scene.add( light2 );
-
-	var spotLight = new THREE.SpotLight( 0xffffff );
-	spotLight.position.set( 0, 24, 0 );
-	scene.add( spotLight );
-
-	var t=0
-	var animate = function () {
-		requestAnimationFrame( animate );
-		controls.update()
-			t=(t+1)%60
-
-		// light2.color.g=Math.abs(Math.sin(t*Math.PI/30.0))
-		if(t == 30) {
-			spotLight.color.setHex(0x000000);
-		} else if(t == 33){
-			spotLight.color.setHex(0xFFFFFF);
-		}
-
-		renderer.render( scene, camera );
-	};
+			// // paredes
+			// planegeom=new THREE.PlaneGeometry(50,70)
+			// planemat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
+			// plane= new THREE.Mesh(planegeom, planemat)
+			// plane.rotation.x=-Math.PI/2.0
 
 
-	animate()
+			// var a = plane.clone();
+			// a.material = plane.material.clone();
+			// a.position.y = 25;
+			// a.rotation.x = Math.PI/2;
+			// a.material.color.set(0x000022);
+			// scene.add(a);
 
-</script>
-</body>
+			// a = plane.clone();
+			// a.material = plane.material.clone();
+			// a.rotation.x = Math.PI;
+			// a.position.y = 25/2;
+			// a.position.z = 35;
+			// a.scale.set(1,25/70,1);
+			// a.material.color.set(0x00FF00);
+			// scene.add(a);
+
+			// a = plane.clone();
+			// a.material = plane.material.clone();
+			// a.rotation.x = Math.PI;
+			// a.rotation.y = Math.PI;
+			// a.position.y = 25/2;
+			// a.position.z = -35;
+			// a.scale.set(1,25/70,1);
+			// a.material.color.set(0x0000FF);
+			// scene.add(a);
+
+			// a = plane.clone();
+			// a.material = plane.material.clone();
+			// a.rotation.x = Math.PI;
+			// a.rotation.y = Math.PI/2;
+			// a.position.y = 25/2;
+			// a.position.x = -50/2;
+			// a.scale.set(70/50,25/70,1);
+			// a.material.color.set(0xFF0000);
+			// scene.add(a);
+
+
+
+			var light = new THREE.AmbientLight( 0x707070 ); // soft white light
+			scene.add( light );
+
+			var spotLight = new THREE.SpotLight( 0xffffff );
+			spotLight.position.set( 0, 24, 0 );
+			scene.add( spotLight );
+
+			var t=0
+			var animate = function () {
+				requestAnimationFrame( animate );
+				controls.update()
+					t=(t+1)%60
+
+				if(t == 30) {
+					spotLight.color.setHex(0x000000);
+				} else if(t == 31){
+					spotLight.color.setHex(0xFFFFFF);
+				}
+
+				renderer.render( scene, camera );
+			};
+
+			animate()
+
+		</script>
+	</body>
 </html>
