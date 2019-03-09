@@ -37,60 +37,62 @@
 			var axesHelper = new THREE.AxesHelper( 5 );
 			scene.add( axesHelper );
 
-			
+			var teste = makeShelfWithBooks();
+			scene.add(teste);
+
 			//criacao dos objetos da cena
-			var shelf = makeShelfWithBooks();
-			var positions = [-10,0,10];
-			var shelfGroup = new THREE.Group();
-			for (var i=0;i<positions.length;i++){
-				var a = shelf.clone();
-				a.position.x = positions[i];
-				a.position.y = +7.5;
-				shelfGroup.add(a);
-			}
-			scene.add(shelfGroup);
+			// var shelf = makeShelfWithBooks();
+			// var positions = [-10,0,10];
+			// var shelfGroup = new THREE.Group();
+			// for (var i=0;i<positions.length;i++){
+			// 	var a = shelf.clone();
+			// 	a.position.x = positions[i];
+			// 	a.position.y = +7.5;
+			// 	shelfGroup.add(a);
+			// }
+			// scene.add(shelfGroup);
 
-			var desk = makeDesk();
-			var positions = [-15,0,15];
-			var position_z =  25
-			var deskGroup = new THREE.Group();
-			for (var i=0;i<positions.length;i++){
-				var a = desk.clone();
-				a.position.x = positions[i];
-				a.position.z = position_z;
-				a.position.y = 0;
-				deskGroup.add(a);
-			}
-			scene.add(deskGroup);
+			// var desk = makeDesk();
+			// var positions = [-15,0,15];
+			// var position_z =  25
+			// var deskGroup = new THREE.Group();
+			// for (var i=0;i<positions.length;i++){
+			// 	var a = desk.clone();
+			// 	a.position.x = positions[i];
+			// 	a.position.z = position_z;
+			// 	a.position.y = 0;
+			// 	deskGroup.add(a);
+			// }
+			// scene.add(deskGroup);
 
-			var chair = makeChair();
-			var positions = [-15,0,15];
-			var position_z =  23
-			var chairGroup = new THREE.Group();
-			for (var i=0;i<positions.length;i++){
-				var a = chair.clone();
-				a.position.x = positions[i]+2;
-				a.position.z = position_z;
-				a.position.y = 0;
-				chairGroup.add(a);
-			}
-			scene.add(chairGroup);
+			// var chair = makeChair();
+			// var positions = [-15,0,15];
+			// var position_z =  23
+			// var chairGroup = new THREE.Group();
+			// for (var i=0;i<positions.length;i++){
+			// 	var a = chair.clone();
+			// 	a.position.x = positions[i]+2;
+			// 	a.position.z = position_z;
+			// 	a.position.y = 0;
+			// 	chairGroup.add(a);
+			// }
+			// scene.add(chairGroup);
 
-			var circle = makeCircle();
-			var positions = [-15,0,15];
-			var position_z =  -25
-			var circleGroup = new THREE.Group();
-			for (var i=0;i<positions.length;i++){
-				var a = circle.clone();
-				a.position.x = positions[i];
-				a.position.z = position_z;
-				a.position.y = 0;
-				circleGroup.add(a);
-			}
-			scene.add(circleGroup);
+			// var circle = makeCircle();
+			// var positions = [-15,0,15];
+			// var position_z =  -25
+			// var circleGroup = new THREE.Group();
+			// for (var i=0;i<positions.length;i++){
+			// 	var a = circle.clone();
+			// 	a.position.x = positions[i];
+			// 	a.position.z = position_z;
+			// 	a.position.y = 0;
+			// 	circleGroup.add(a);
+			// }
+			// scene.add(circleGroup);
 
-			var floor = makeFloor();
-			scene.add(floor);
+			// var floor = makeFloor();
+			// scene.add(floor);
 
 			// // paredes
 			// planegeom=new THREE.PlaneGeometry(50,70)

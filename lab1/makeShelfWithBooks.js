@@ -1,10 +1,10 @@
 function makeShelfWithBooks() {
-    g_chairs=new THREE.Group()
+    shelfGroup=new THREE.Group()
     var shelf = makeShelf();
     var book = makeBook();
     var z_0 = 0.45;
     var number_of_books = 15;
-    var heightOfBook = 3;
+    var heightOfBook = 2.5;
     var height = [-4.8,0,4.8];
     for(var j=0;j<height.length;j++){
         for(var i=0;i<number_of_books;i++){
@@ -17,11 +17,11 @@ function makeShelfWithBooks() {
             }
             a.children[3].material.color.setHex(0xFFFFFF);
             a.scale.set(1,randomScale,1);
-            a.position.z = z_0*i + 0.03;
-            a.position.y = height[j] + (heightOfBook*randomScale)/2;
-            g_chairs.add(a);
+            a.position.z = z_0*i + 0.075;
+            a.position.y = height[j] + (heightOfBook*randomScale)/2 + 0.1/2;
+            shelfGroup.add(a);
         }
     }
-    g_chairs.add(shelf);
-    return g_chairs;
+    shelfGroup.add(shelf);
+    return shelfGroup;
 }
