@@ -20,7 +20,7 @@
 		<script type="text/javascript" src="makeFloor.js"></script>
 		<script>
 
-			//criacao dos elementos da cena necessarios para renderizar
+			// Criação dos elementos da cena necessarios para renderizar
 			var scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0xFFFFFF );
 			var camera = new THREE.PerspectiveCamera( 95, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -28,16 +28,20 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
 
+			// Posicionar camera 
 			camera.position.z = 20;
 			camera.position.x = 20;
 			camera.position.y = 10;
 
+			// Criação do controle para usar OrbitControls
 			var controls = new THREE.OrbitControls( camera );
 
+			// Adição de eixos auxiliares
 			var axesHelper = new THREE.AxesHelper( 5 );
 			scene.add( axesHelper );
 
-			// criacao dos objetos da cena
+			// Criacao dos objetos da cena
+			// Estantes
 			var shelf = makeShelfWithBooks();
 			var positions = [-10,0,10];
 			var shelfGroup = new THREE.Group();
@@ -48,7 +52,7 @@
 				shelfGroup.add(a);
 			}
 			scene.add(shelfGroup);
-
+			// Mesas
 			var desk = makeDesk();
 			var positions = [-15,0,15];
 			var position_z =  25
@@ -61,7 +65,7 @@
 				deskGroup.add(a);
 			}
 			scene.add(deskGroup);
-
+			// Cadeiras
 			var chair = makeChair();
 			var positions = [-15,0,15];
 			var position_z =  23
@@ -74,7 +78,7 @@
 				chairGroup.add(a);
 			}
 			scene.add(chairGroup);
-
+			// Mesas circulares, com o livro em cima
 			var circle = makeCircle();
 			var positions = [-15,0,15];
 			var position_z =  -25
@@ -87,68 +91,24 @@
 				circleGroup.add(a);
 			}
 			scene.add(circleGroup);
-
+			// Piso
 			var floor = makeFloor();
 			scene.add(floor);
-
-			// // paredes
-			// planegeom=new THREE.PlaneGeometry(50,70)
-			// planemat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
-			// plane= new THREE.Mesh(planegeom, planemat)
-			// plane.rotation.x=-Math.PI/2.0
-
-
-			// var a = plane.clone();
-			// a.material = plane.material.clone();
-			// a.position.y = 25;
-			// a.rotation.x = Math.PI/2;
-			// a.material.color.set(0x000022);
-			// scene.add(a);
-
-			// a = plane.clone();
-			// a.material = plane.material.clone();
-			// a.rotation.x = Math.PI;
-			// a.position.y = 25/2;
-			// a.position.z = 35;
-			// a.scale.set(1,25/70,1);
-			// a.material.color.set(0x00FF00);
-			// scene.add(a);
-
-			// a = plane.clone();
-			// a.material = plane.material.clone();
-			// a.rotation.x = Math.PI;
-			// a.rotation.y = Math.PI;
-			// a.position.y = 25/2;
-			// a.position.z = -35;
-			// a.scale.set(1,25/70,1);
-			// a.material.color.set(0x0000FF);
-			// scene.add(a);
-
-			// a = plane.clone();
-			// a.material = plane.material.clone();
-			// a.rotation.x = Math.PI;
-			// a.rotation.y = Math.PI/2;
-			// a.position.y = 25/2;
-			// a.position.x = -50/2;
-			// a.scale.set(70/50,25/70,1);
-			// a.material.color.set(0xFF0000);
-			// scene.add(a);
-
-
-
-			var light = new THREE.AmbientLight( 0x707070 ); // soft white light
+			// Adição de uma luz ambiente branca fraca
+			var light = new THREE.AmbientLight( 0x707070 ); 
 			scene.add( light );
-
+			// Adição de farol de luz
 			var spotLight = new THREE.SpotLight( 0xffffff );
 			spotLight.position.set( 0, 24, 0 );
 			scene.add( spotLight );
 
+			// Loop principal da cena
 			var t=0
 			var animate = function () {
 				requestAnimationFrame( animate );
 				controls.update()
-					t=(t+1)%60
-
+				// Fazer o farol de luz piscar
+				t=(t+1)%60
 				if(t == 30) {
 					spotLight.color.setHex(0x000000);
 				} else if(t == 31){
@@ -158,8 +118,8 @@
 				renderer.render( scene, camera );
 			};
 
+			// Chama inicial do loop principal da cena
 			animate()
-
 		</script>
 	</body>
 </html>

@@ -1,5 +1,6 @@
 function makeBook(coverColor=0xFF5522) {
-    //capa do livro
+
+    // Gerar capa do livro
     var height = 2.5;
     var cover_geom= new THREE.BoxGeometry(2,height,0.06)
     var cover_mat= new THREE.MeshLambertMaterial({color:coverColor})
@@ -7,7 +8,7 @@ function makeBook(coverColor=0xFF5522) {
     cover.position.x = 0
     cover.position.y = 0
 
-    //lombada
+    // Gerar lombada
     var spine_geom= new THREE.BoxGeometry(0.06,height,0.3)
     var spine_mat= new THREE.MeshLambertMaterial({color:coverColor})
     var spine = new THREE.Mesh(spine_geom, spine_mat)
@@ -17,7 +18,7 @@ function makeBook(coverColor=0xFF5522) {
     var cover2 = cover.clone()
     cover2.position.z = 0.3+0.06
 
-    //miolo
+    // Gerar miolo
     var pages_geom= new THREE.BoxGeometry(2-0.05,height-0.05,0.3)
     var pages_mat= new THREE.MeshLambertMaterial({color:0xFFFFFF})
     var pages = new THREE.Mesh(pages_geom, pages_mat)
@@ -25,15 +26,18 @@ function makeBook(coverColor=0xFF5522) {
     pages.position.y = 0
     pages.position.z = (0.3-0.06)/2+0.06
 
+    // Adicionar todos os componetes ao grupo
     var book = new THREE.Group()
     book.add(cover)
     book.add(cover2)
     book.add(spine)
     book.add(pages)
 
+    // Posicionar livro
     book.position.z = 0;
     book.position.y = 0;
     book.position.x = 0;
 
+    // Retorna livro pronto
     return book
 }

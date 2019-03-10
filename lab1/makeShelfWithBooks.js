@@ -1,11 +1,14 @@
 function makeShelfWithBooks() {
+    
+    // Configurações e variaveis gerais
     shelfGroup=new THREE.Group()
-    var shelf = makeShelf();
-    var book = makeBook();
     var z_0 = 0.45;
     var number_of_books = 15;
     var heightOfBook = 2.5;
     var height = [-4.8,0,4.8];
+
+    // Gerar livros na estante
+    var book = makeBook();
     for(var j=0;j<height.length;j++){
         for(var i=0;i<number_of_books;i++){
             var a = book.clone();
@@ -22,6 +25,10 @@ function makeShelfWithBooks() {
             shelfGroup.add(a);
         }
     }
+    // Gerar estante
+    var shelf = makeShelf();
     shelfGroup.add(shelf);
+
+    // Retornar estante com livros pronta
     return shelfGroup;
 }

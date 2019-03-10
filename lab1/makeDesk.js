@@ -31,6 +31,6 @@ function makeDesk() {
     horizontal.position.z = 4/2
     group.add(horizontal);
 
-    // Retornar mesa feita
+    // Retorna mesa feita
     return group;
 }

@@ -1,5 +1,5 @@
-function makeChair()
-{
+function makeChair(){
+
 	// Configurações e variaveis gerais
 	var group = new THREE.Group()
     var texture = new THREE.TextureLoader().load("wood.jpg");
@@ -36,6 +36,6 @@ function makeChair()
 	backrest.position.set(3/2,5,-0.3)
 	group.add(backrest)
 
-	// Retornar cadeia feita
+	// Retorna cadeia feita
 	return group
 }
