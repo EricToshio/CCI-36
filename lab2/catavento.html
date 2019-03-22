@@ -32,8 +32,8 @@
   var flat = 50/(Math.PI+1);
   var raio_maior = flat;
   var raio_menor = raio_maior/2;
-  var cont1 = 0;
-  var cont2 = 0;
+  var cont1 = 1;
+  var cont2 = 1;
   for (x=0; x<50; x++){
     var x1 = x;
     var z1 = 0;
@@ -132,10 +132,9 @@
     
 
     if(state == 0){
-      console.log("aqui")
       flat = flat + 1;
-      var cont1 = 0;
-      var cont2 = 0;
+      var cont1 = 1;
+      var cont2 = 1
       for (x=0; x<50; x++){
         var x1 = x;
         var z1 = 0;
@@ -172,8 +171,8 @@
       }
     } else if(state == 2) {
       flat = flat - 1;
-      var cont1 = 0;
-      var cont2 = 0;
+      var cont1 = 1;
+      var cont2 = 1;
       for (x=0; x<50; x++){
         var x1 = x;
         var z1 = 0;
