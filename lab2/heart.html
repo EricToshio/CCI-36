@@ -33,7 +33,7 @@
     //eo.vertices.push( new THREE.Vector3(0,(scale-1),0))
     for (t=0; t<points; t++){
       scale_prop = 1+0.1*Math.exp(scale-1)
-      angle = t*Math.PI/points
+      angle = t*2*Math.PI/points
       x = (16*Math.pow(Math.sin(angle),3))/scale_prop
       z = (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))/scale_prop
       y = (scale-1)
@@ -51,29 +51,29 @@
     }
   }
 
-  var geo2= new THREE.Geometry();
-  geo2.vertices.push( new THREE.Vector3(0,0,0))
-  for (scale=1; scale < scale_reduction; scale++){
-    //eo.vertices.push( new THREE.Vector3(0,(scale-1),0))
-    for (t=0; t<points; t++){
-      scale_prop = 1+0.1*Math.exp(scale-1)
-      angle = t*Math.PI/points
-      x = -(16*Math.pow(Math.sin(angle),3))/scale_prop
-      z = (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))/scale_prop
-      y = (scale-1)
+  // var geo2= new THREE.Geometry();
+  // geo2.vertices.push( new THREE.Vector3(0,0,0))
+  // for (scale=1; scale < scale_reduction; scale++){
+  //   //eo.vertices.push( new THREE.Vector3(0,(scale-1),0))
+  //   for (t=0; t<points; t++){
+  //     scale_prop = 1+0.1*Math.exp(scale-1)
+  //     angle = t*Math.PI/points
+  //     x = -(16*Math.pow(Math.sin(angle),3))/scale_prop
+  //     z = (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))/scale_prop
+  //     y = (scale-1)
 
-      geo2.vertices.push( new THREE.Vector3(x,y,z))
-    }
-  }
+  //     geo2.vertices.push( new THREE.Vector3(x,y,z))
+  //   }
+  // }
 
-  for (scale=0; scale < scale_reduction-2; scale++){
-    for (t=2; t<points-1; t++)
-    {
-      face=new THREE.Face3(t+(scale+1)*points,t+scale*points,t+1+scale*points)
-      geo2.faces.push( face )
-      face.color=new THREE.Color(0xFF0000);
-    }
-  }
+  // for (scale=0; scale < scale_reduction-2; scale++){
+  //   for (t=2; t<points-1; t++)
+  //   {
+  //     face=new THREE.Face3(t+(scale+1)*points,t+scale*points,t+1+scale*points)
+  //     geo2.faces.push( face )
+  //     face.color=new THREE.Color(0xFF0000);
+  //   }
+  // }
 
 
 
@@ -88,33 +88,33 @@
      }) 
    )
 
-  var mesh2 = new THREE.Mesh( geo2, 
-    new THREE.MeshBasicMaterial({
-       vertexColors: THREE.VertexColors,
-       flatShading: true,
-       side: THREE.DoubleSide,
-       //color:0x00f5f5,
-     }) 
-   )
+  // var mesh2 = new THREE.Mesh( geo2, 
+  //   new THREE.MeshBasicMaterial({
+  //      vertexColors: THREE.VertexColors,
+  //      flatShading: true,
+  //      side: THREE.DoubleSide,
+  //      //color:0x00f5f5,
+  //    }) 
+  //  )
 
 
   
   var a = mesh.clone()
   a.rotation.z = Math.PI
 
-  var a2 = mesh2.clone()
-  a2.rotation.z = Math.PI
+  // var a2 = mesh2.clone()
+  // a2.rotation.z = Math.PI
   
   var fanGroup = new THREE.Group()
   fanGroup.add(a)
   fanGroup.add(mesh)
-  fanGroup.add(a2)
-  fanGroup.add(mesh2)
+  // fanGroup.add(a2)
+  // fanGroup.add(mesh2)
   scene.add(fanGroup)
 
   //geo.computeFaceNormals()
   geo.computeVertexNormals()
-  geo2.computeVertexNormals()
+  // geo2.computeVertexNormals()
 
 
 /*  function define_index(x,n=50) {
