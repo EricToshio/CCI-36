@@ -1,23 +1,4 @@
 
-<<<<<<< Updated upstream
-<!DOCTYPE html> 
-<html> 
-<head> 
-<meta charset=utf-8> 
-<title>Laboratório 2 - Catavento</title> 
-<style> 
-  body { margin: 0; } 
-  canvas { width: 100%; height: 100% } 
-</style> 
-</head> 
-<body> 
-<script src="js/three.js"></script> 
-<script src="js/OrbitControls.js"></script> 
-<script> 
-
-  // Our Javascript will go here. 
-=======
->>>>>>> Stashed changes
 
 <!DOCTYPE html>
 <html>
@@ -80,16 +61,6 @@
     {
       face=new THREE.Face3(define_index(x)+y,define_index(x)+y+1, define_index(x+1)+y)
       geo.faces.push( face )
-<<<<<<< Updated upstream
-      face.color=new THREE.Color(0x00FF00);
-
-      //face.vertexColors[0]=geo.colors[i*50+j];
-      //face.vertexColors[1]=geo.colors[i*50+j+1];
-      //face.vertexColors[2]=geo.colors[i*50+j+50];
-      
-      //face=new THREE.Face3(i*50+j+50+1,  i*50+j+50, i*50+j+1,)
-  	  //geo.faces.push( face )
-=======
       // face.color=new THREE.Color(0x00FF00);
 
       geo.faceVertexUvs[0].push( [
@@ -98,7 +69,6 @@
         new THREE.Vector2((x+1)/50.0,y/50.0),]
       )
 
->>>>>>> Stashed changes
   	}
 
   for (x=0; x<49; x++)
@@ -106,31 +76,6 @@
     {
       face=new THREE.Face3(define_index(x)+y,define_index(x+1)+y, define_index(x+1)+y-1)
       geo.faces.push( face )
-<<<<<<< Updated upstream
-      face.color=new THREE.Color(0xff0000);
-      
-      //face.vertexColors[0]=geo.colors[i*50+j];
-      //face.vertexColors[1]=geo.colors[i*50+j+1];
-      //face.vertexColors[2]=geo.colors[i*50+j+50];
-      
-      //face=new THREE.Face3(i*50+j+50+1,  i*50+j+50, i*50+j+1,)
-      //geo.faces.push( face )
-    }
-
-  //geo.computeFaceNormals()
-  geo.computeVertexNormals()
-  	
-  geo.colorsNeedUpdate=true;
-  	
-  var mesh = new THREE.Mesh( geo, 
-    new THREE.MeshBasicMaterial({
-       vertexColors: THREE.VertexColors,
-  	   flatShading: true,
-       side: THREE.DoubleSide,
-  	   //color:0x00f5f5,
-  	 }) 
-   )
-=======
       // // face.color=new THREE.Color(0xff0000);
 
       geo.faceVertexUvs[0].push( [
@@ -162,7 +107,6 @@
     	    map: texture1,
     	 })
      )
->>>>>>> Stashed changes
   var a = mesh.clone()
   a.rotation.z = Math.PI/2
 
