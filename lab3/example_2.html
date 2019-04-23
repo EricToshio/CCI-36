@@ -1,0 +1,253 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+<meta charset=utf-8> 
+<title>Checkers with piece dragging</title> 
+<style> 
+  body { margin: 0; overflow: hidden} 
+  canvas { width: 100%; height: 100%; overflow: hidden } 
+</style> 
+</head> 
+<body> 
+<script src="js/three.js"></script> 
+<script> 
+
+/* Exemplo de interface complexa com mouse, drag-and-drop e animação
+   by Prof. Carlos Henrique Q. Forster (2019)
+*/
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var renderer = new THREE.WebGLRenderer({antialias: true}); 
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor(0x220000);
+document.body.appendChild( renderer.domElement );
+
+var slot_geo=new THREE.BoxGeometry(1, 1, 0.2)
+var piece_geo = new THREE.CylinderGeometry(0.46, 0.46, 0.4, 32)
+
+var slots=[]
+var pieces=[]
+
+var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
+var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
+var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
+var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
+var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+
+for (var i=0; i<8; i++)
+  for (var j=0; j<8; j++)
+  {
+    var slot= new THREE.Mesh( slot_geo, (i+j)%2?mat_clear:mat_dark);
+	slot.is_clear=(i+j)%2;
+	slot.position.x= i;
+	slot.position.y= j;
+	scene.add(slot);
+	slots.push(slot);
+	slot.piece = null; // slot vazio
+	
+	if((i+j+1)%2 && (j==0 || j==1|| j==2 || j==5|| j==6 || j==7))
+	{
+      var piece = new THREE.Mesh(piece_geo,j<5?mat_white:mat_black)
+	  piece.is_white=j<5;
+      piece.position.x= i;
+	  piece.position.y= j;
+	  piece.position.z=0.4
+	  piece.rotation.x= Math.PI/2.0;
+	  scene.add(piece)
+	  pieces.push(piece)
+	  slot.piece = piece; // slot tem peça
+	  piece.slot = slot; // slot da peça
+	}
+	
+  }
+
+var light =  new THREE.PointLight( 0xffffff, 1.0 );
+light.position.set(4,4,2);
+
+
+scene.add(light)
+camera.position.x = 4;
+camera.position.z = 5;
+camera.position.y = -3;
+camera.up = new THREE.Vector3(0,0,1);
+camera.lookAt(new THREE.Vector3(4, 4, 0));
+
+var t_blacks=Math.PI/2.0;
+var t_whites=3.0*Math.PI/2.0;
+var anim_time=0;
+
+t=t_whites
+
+boardcenter = new THREE.Vector3(4, 4, 0)
+
+
+
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2(-1000,-1000);
+var nmouse = new THREE.Vector2(-1000,-1000);
+
+function updateCursor() {
+	var width=window.innerWidth;
+	var height=window.innerHeight;
+
+	// calculate mouse position in normalized device coordinates
+	// (-1 to +1) for both components
+	nmouse.x = ( event.clientX / width ) * 2 - 1;
+	nmouse.y = - ( event.clientY / height ) * 2 + 1;
+	
+	mouse.x= event.clientX -width/2
+	mouse.y= -event.clientY + height/2
+
+	raycaster.setFromCamera( nmouse, camera );
+}
+
+
+var state='preselect'
+var grab=null;
+var whites_turn=true;
+
+var grab_x, grab_y;
+
+function state_update(event) {
+
+  if (event.type!='paint')
+  {
+    for (i=0; i<pieces.length; i++)
+      if (pieces[i].is_white) pieces[i].material=mat_white; else pieces[i].material=mat_black;
+
+    for (i=0; i<slots.length; i++)
+      slots[i].material= slots[i].is_clear? mat_clear: mat_dark;
+
+    updateCursor();
+  }
+
+  if (event.type=='mousemove' && state=='preselect')
+  {
+    intersects = raycaster.intersectObjects(slots)
+	if (intersects.length) {
+    	if (!intersects[0].object.piece) intersects[0].object.material=mat_highlight;
+	}
+	
+	intersects = raycaster.intersectObjects(pieces)
+	if (intersects.length) {
+	  if (intersects[0].object.is_white==whites_turn) intersects[0].object.material=mat_highlight;
+	}
+  }
+  
+  if (event.type=='mousedown' && state=='preselect')
+  {
+	intersects = raycaster.intersectObjects(pieces)
+	if (intersects.length) {
+	  if (intersects[0].object.is_white==whites_turn)
+		{
+		  state='grab'
+		  grab = intersects[0].object;
+		  grab.position.z=1.0;
+		  grab_x=grab.position.x;
+		  grab_y=grab.position.y;
+		  return; // sempre retornar se mudou de estado
+		}
+	}
+  }
+  
+  if (event.type=='mousemove' && state=='grab')
+  {
+    intersects = raycaster.intersectObjects(slots)
+	if (intersects.length) {
+	    target_slot=intersects[0].object;
+    	if (!target_slot.is_clear && !target_slot.piece) { 
+		  target_slot.material=mat_highlight;
+		  grab_x=target_slot.position.x;
+		  grab_y=target_slot.position.y;
+		}
+	}
+  }
+  
+  if (event.type=='mouseup' && state=='grab')
+  {
+    console.log(event.type);
+    intersects = raycaster.intersectObjects(slots)
+	if (intersects.length) {
+	    target_slot=intersects[0].object;
+    	if (!target_slot.is_clear && !target_slot.piece) {
+          origin_slot=grab.slot
+          origin_slot.piece=null;
+          target_slot.piece=grab;		  
+		  grab.slot=target_slot;
+		  grab.position.x=target_slot.position.x;
+		  grab.position.y=target_slot.position.y;
+		  grab.position.z=0.5;
+		  state='turning'
+		  anim_time=0;
+		  whites_turn=!whites_turn;
+		  
+		  grab=null;
+		  return; // sempre retornar se mudou de estado
+		}
+	}
+	state='preselect'
+	origin_slot=grab.slot
+	grab.position.x=origin_slot.position.x;
+	grab.position.y=origin_slot.position.y;
+	grab.position.z=0.5;
+	grab=null
+	return; // sempre retornar se mudou de estado
+  
+  }
+  
+  if (event.type=='paint' && state=='turning')
+  {
+    anim_time=anim_time+0.05;
+	if(whites_turn) t=t_blacks+anim_time;
+	else t=t_whites+anim_time;
+	if (anim_time>Math.PI) state='preselect';
+  }
+  
+  if (event.type=='paint' && state=='grab')
+  {
+     var vel=0.1
+     var x= grab.position.x;
+	 var y= grab.position.y;
+	 var dirx= grab_x-x;
+	 var diry= grab_y-y;
+	 var dist=Math.sqrt(dirx*dirx+diry*diry);
+	 if (dist > vel)
+	 {
+	   grab.position.x=x+vel*dirx/dist;
+	   grab.position.y=y+vel*diry/dist;
+	 }
+	 else
+	 {
+	   grab.position.x=grab_x;
+	   grab.position.y=grab_y;
+	 }
+  }
+    
+  
+}
+
+
+function animate() { 
+  requestAnimationFrame( animate ); 
+  state_update(new Event('paint'));
+
+  camera.position.x = 5*Math.cos(t)+4;
+  camera.position.y = 5*Math.sin(t)+4;
+  camera.position.z = 5+Math.sin(t/2.0)+2*Math.sin(t*2.0);
+  camera.up.set(0,0,1) 
+  camera.lookAt(boardcenter);
+
+  renderer.render( scene, camera ); 
+} 
+
+
+window.addEventListener( 'mousemove', state_update, false );
+window.addEventListener( 'mouseup', state_update, false );
+window.addEventListener( 'mousedown', state_update, false );
+animate();
+
+
+</script> 
+</body> 
+</html>
