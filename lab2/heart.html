@@ -1,225 +1,103 @@
-
-<!DOCTYPE html> 
-<html> 
-<head> 
-<meta charset=utf-8> 
-<title>Laboratório 2 - Catavento</title> 
-<style> 
-  body { margin: 0; } 
-  canvas { width: 100%; height: 100% } 
-</style> 
-</head> 
-<body> 
-<script src="js/three.js"></script> 
-<script src="js/OrbitControls.js"></script> 
-<script> 
-  // Initial configuration
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  var renderer = new THREE.WebGLRenderer({antialias: true}); 
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.setClearColor(0x220000);
-  document.body.appendChild( renderer.domElement );
-
-
-  var geo= new THREE.Geometry();
-
-  var points = 100
-  var scale_reduction = 6
-
-  
-  geo.vertices.push( new THREE.Vector3(0,0,0))
-  for (scale=1; scale < scale_reduction; scale++){
-    //eo.vertices.push( new THREE.Vector3(0,(scale-1),0))
-    for (t=0; t<points; t++){
-      scale_prop = 1+0.1*Math.exp(scale-1)
-      angle = t*2*Math.PI/points
-      x = (16*Math.pow(Math.sin(angle),3))/scale_prop
-      z = (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))/scale_prop
-      y = (scale-1)
-
-      geo.vertices.push( new THREE.Vector3(x,y,z))
-    }
-  }
-
-  for (scale=0; scale < scale_reduction-2; scale++){
-    for (t=2; t<points-1; t++)
-    {
-      face=new THREE.Face3(t+(scale+1)*points,t+scale*points,t+1+scale*points)
-      geo.faces.push( face )
-      face.color=new THREE.Color(0xFF0000);
-      face=new THREE.Face3(t+(scale+1)*points,t+1+scale*points,t+2+scale*points)
-      geo.faces.push( face )
-      
-      
-    }
-  }
-
-
-  //geo.computeFaceNormals()
-  geo.computeVertexNormals()
-  geo.colorsNeedUpdate=true;
-    
-  var mesh = new THREE.Mesh( geo, 
-    new THREE.MeshBasicMaterial({
-       vertexColors: THREE.VertexColors,
-       flatShading: true,
-       side: THREE.DoubleSide,
-     }) 
-   )
-
-  
-  var a = mesh.clone()
-  a.rotation.z = Math.PI
-
-  
-  var fanGroup = new THREE.Group()
-  fanGroup.add(a)
-  fanGroup.add(mesh)
-  scene.add(fanGroup)
-
-
-
-  var axesHelper = new THREE.AxesHelper( 5 );
-  scene.add( axesHelper );
-
-  var light =  new THREE.PointLight( 0xffffff, 1.0 );
-  light.position.set(4,4,2);
-
-
-  scene.add(light)
-  camera.position.x = 50;
-  camera.position.z = 30;
-  camera.position.y = -30;
-  camera.up = new THREE.Vector3(0,0,1);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  var controls = new THREE.OrbitControls( camera );
-
-
-  var t=0;
-  var counter = 0;
-
-  var state = 0;
-
-  function animate() { 
-    requestAnimationFrame( animate ); 
-    controls.update()
-    //camera.lookAt(new THREE.Vector3(0, 0, 0))
-    renderer.render( scene, camera ); 
-    //girar
-    t=t+0.01;
-    fanGroup.rotation.z = -1*t;
-
-  for (i= 0; i<501;i++)
-  {  
-    x = geo.vertices[i].x
-    y = (Math.floor(i/100))*Math.cos(t*Math.PI*2)
-    z = geo.vertices[i].z
-
-    geo.vertices[i].set(x,y,z)
-
-  }
-/*
-  var points = 100
-  var scale_reduction = 6
-  for (scale=1; scale < scale_reduction; scale++){
-    for (t=0; t<points; t++){
-      scale_prop = 1+0.1*Math.exp(scale-1)
-      angle = t*2*Math.PI/points
-      x = (16*Math.pow(Math.sin(angle),3))/scale_prop
-      z = (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))/scale_prop
-      y = (scale-1)*Math.sin(t)
-
-      //geo.vertices[pos].set(x,y,z)
-      pos = pos+1
-    }
-  }*/
-
-    geo.dynamic = true
-    geo.verticesNeedUpdate = true
-    /*if(state == 0){
-      flat = flat + 1;
-      var cont1 = 1;
-      var cont2 = 1
-      for (x=0; x<50; x++){
-        var x1 = x;
-        var z1 = 0;
-        if(x < flat){
-          x1 = x;
-          z1 = 0;
-        } else if(x < flat + raio_menor*Math.PI){
-          x1 = flat + raio_menor*Math.sin(cont1/raio_menor);
-          z1 = raio_menor - raio_menor*Math.cos(cont1/raio_menor);
-          cont1 = cont1 + 1;
-        } else {
-          x1 = flat - raio_maior*Math.sin(cont2/raio_maior);
-          z1 = raio_maior*Math.cos(cont2/raio_maior);
-          cont2 = cont2 + 1;
-        }
-
-        for (y=0; y<50-x; y++)
-        {
-          geo.vertices[define_index(x)+y].set(x1,y,z1)
-        }
-        geo.dynamic = true
-        geo.verticesNeedUpdate = true
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>Laboratório 2 - Coração</title>
+    <style>
+    body { margin: 0; }
+    canvas { width: 100%; height: 100% }
+    </style>
+  </head>
+  <body>
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script>
+      // Configurações iniciais
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      var renderer = new THREE.WebGLRenderer({
+          antialias: true
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x220000);
+      document.body.appendChild(renderer.domElement);
+      // Inicialização do geometry
+      var geo = new THREE.Geometry();
+      // Gerando os pontos
+      var points = 100
+      var scale_reduction = 6
+      geo.vertices.push(new THREE.Vector3(0, 0, 0))
+      for (scale = 1; scale < scale_reduction; scale++) {
+          for (t = 0; t < points; t++) {
+              scale_prop = 1 + 0.1 * Math.exp(scale - 1)
+              angle = t * 2 * Math.PI / points
+              x = (16 * Math.pow(Math.sin(angle), 3)) / scale_prop
+              z = (13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle)) / scale_prop
+              y = (scale - 1)
+              geo.vertices.push(new THREE.Vector3(x, y, z))
+          }
       }
-      if(flat > raio_maior + Math.PI*raio_maior){
-        state = 1;
+      // Gerando as faces
+      for (scale = 0; scale < scale_reduction - 2; scale++) {
+          for (t = 2; t < points - 1; t++) {
+              face = new THREE.Face3(t + (scale + 1) * points, t + scale * points, t + 1 + scale * points)
+              geo.faces.push(face)
+              face.color = new THREE.Color(0xFF0000);
+              face = new THREE.Face3(t + (scale + 1) * points, t + 1 + scale * points, t + 2 + scale * points)
+              geo.faces.push(face)
+          }
       }
-    } else if(state == 1) {
-      t=t+0.01;
-      counter += 1;
-      fanGroup.rotation.z = -1*t;
-      if(counter > 200){
-        counter = 0;
-        state = 2;
+      // Configurações das faces
+      geo.computeVertexNormals()
+      geo.colorsNeedUpdate = true;
+      var mesh = new THREE.Mesh(geo,
+              new THREE.MeshBasicMaterial({
+                  vertexColors: THREE.VertexColors,
+                  flatShading: true,
+                  side: THREE.DoubleSide,
+              })
+          )
+          // Gerando a outra metade do coração
+      var a = mesh.clone()
+      a.rotation.z = Math.PI
+      var fanGroup = new THREE.Group()
+      fanGroup.add(a)
+      fanGroup.add(mesh)
+      scene.add(fanGroup)
+      // Adição da luz
+      var light = new THREE.PointLight(0xffffff, 1.0);
+      light.position.set(4, 4, 2);
+      scene.add(light)
+      // Configuração da camera
+      camera.position.x = 50;
+      camera.position.z = 30;
+      camera.position.y = -30;
+      camera.up = new THREE.Vector3(0, 0, 1);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      // Configuração do controle
+      var controls = new THREE.OrbitControls(camera);
+      // Gerar animação
+      var t = 0;
+      var counter = 0;
+      var state = 0;
+      function animate() {
+          requestAnimationFrame(animate);
+          controls.update()
+          renderer.render(scene, camera);
+          // Girar
+          t = t + 0.01;
+          fanGroup.rotation.z = -1 * t;
+          // Criar pulsação
+          for (i = 0; i < 501; i++) {
+              x = geo.vertices[i].x
+              y = (Math.floor(i / 100)) * Math.cos(t * Math.PI * 2)
+              z = geo.vertices[i].z
+              geo.vertices[i].set(x, y, z)
+          }
+          geo.dynamic = true
+          geo.verticesNeedUpdate = true
       }
-    } else if(state == 2) {
-      flat = flat - 1;
-      var cont1 = 1;
-      var cont2 = 1;
-      for (x=0; x<50; x++){
-        var x1 = x;
-        var z1 = 0;
-        if(x < flat){
-          x1 = x;
-          z1 = 0;
-        } else if(x < flat + raio_menor*Math.PI){
-          x1 = flat + raio_menor*Math.sin(cont1/raio_menor);
-          z1 = raio_menor - raio_menor*Math.cos(cont1/raio_menor);
-          cont1 = cont1 + 1;
-        } else {
-          x1 = flat - raio_maior*Math.sin(cont2/raio_maior);
-          z1 = raio_maior*Math.cos(cont2/raio_maior);
-          cont2 = cont2 + 1;
-        }
-
-        for (y=0; y<50-x; y++)
-        {
-          geo.vertices[define_index(x)+y].set(x1,y,z1)
-        }
-        geo.dynamic = true
-        geo.verticesNeedUpdate = true
-      }
-      if(flat <= raio_maior){
-        state = 3;
-      }
-    } else if(state == 3) {
-      t=t+0.01;
-      counter = counter + 1;
-      fanGroup.rotation.z = -1*t;
-      if(counter > 200){
-        counter  = 0;
-        state = 0;
-      }
-    }*/
-  } 
-
-  animate();
-
-
-</script> 
-</body> 
+      animate();
+    </script>
+  </body>
 </html>
