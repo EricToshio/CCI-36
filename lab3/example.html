@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Beziers</title>
+		<style>
+			body { margin: 0; overflow: hidden}
+			canvas { width: 100%; height: 100%; overflow:hidden }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script>
+		
+var scene = new THREE.Scene();
+width=window.innerWidth;
+height=window.innerHeight;
+var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
+scene.add( camera );
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor(0xFFFFFF,1);
+document.body.appendChild( renderer.domElement );
+
+var grid = new THREE.GridHelper(1000,100,0x8888,0xEEEEEE);
+grid.rotation.x=Math.PI/2
+scene.add(grid);
+
+var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+var highlite = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+
+var cube0 = new THREE.Mesh( geometry, material );
+var cube1 = new THREE.Mesh( geometry, material );
+var cube2 = new THREE.Mesh( geometry, material );
+var cube3 = new THREE.Mesh( geometry, material );
+
+var curve = new THREE.CubicBezierCurve(
+  new THREE.Vector2(100,100),
+  new THREE.Vector2(50,-200),
+  new THREE.Vector2(0,-200),
+  new THREE.Vector2(-50,80)
+);
+
+var points = curve.getPoints( 50 );
+var curve_geometry = new THREE.BufferGeometry().setFromPoints( points );
+var curve_material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+var curveObject = new THREE.Line( curve_geometry, curve_material );
+
+scene.add( cube0, cube1, cube2, cube3, curveObject );
+
+cube0.position.set(100, 100, 0)
+cube1.position.set(50, -200, 0)
+cube2.position.set(0, -200, 0)
+cube3.position.set(-50, 80,  0)
+
+var mycontrols=[cube0, cube1, cube2, cube3]
+
+camera.position.z = 5;
+
+var cursor= new THREE.Mesh( new THREE.SphereGeometry(10), 
+                            new THREE.MeshBasicMaterial({color:0xdddddd}))
+cursor.position.z=-900
+scene.add(cursor)
+
+
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2(-1000,-1000);
+var nmouse = new THREE.Vector2(-1000,-1000);
+
+var state = 0 
+
+var hover=undefined
+
+var pan= new THREE.Vector2(0,0)
+
+function updateCursor() {
+	// calculate mouse position in normalized device coordinates
+	// (-1 to +1) for both components
+	nmouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	nmouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	
+	mouse.x= event.clientX -width/2
+	mouse.y= -event.clientY + height/2
+	
+	cursor.position.x = mouse.x -pan.x
+	cursor.position.y = mouse.y -pan.y
+
+	raycaster.setFromCamera( nmouse, camera );
+
+}
+
+function onMouseMove( event ) {
+
+	updateCursor()
+	
+	switch(state)
+	{
+	  case 0: // free cursor
+        var intersects = raycaster.intersectObjects( mycontrols );
+		if (intersects.length>0)
+        {
+		  state=1;
+		  hover=intersects[0].object;
+		  hover.material=highlite;
+		}
+		break;
+	
+      case 1: // hover
+	    var intersects = raycaster.intersectObject( hover );
+		if (intersects.length==0)
+		{
+		   hover.material=material
+		   state=0
+		   hover=undefined
+		}
+		break;
+
+	  case 2: // drag mode
+	    hover.position.x = mouse.x -pan.x
+		hover.position.y = mouse.y -pan.y
+		break;
+		
+	  case 3: // pan mode
+	    camera.position.x = pan.x - mouse.x
+		camera.position.y = pan.y - mouse.y
+     	cursor.position.x = pan.x 
+	    cursor.position.y = pan.y
+		break;
+	}
+	
+}
+
+
+function onMouseUp( event ) {
+
+	updateCursor()
+	
+	switch(state)
+	{
+	
+	  case 2: // drag mode
+	    hover.position.x = mouse.x - pan.x
+		hover.position.y = mouse.y - pan.y
+		curve.v0.set(cube0.position.x,cube0.position.y);
+		curve.v1.set(cube1.position.x,cube1.position.y);
+		curve.v2.set(cube2.position.x,cube2.position.y);
+		curve.v3.set(cube3.position.x,cube3.position.y);
+        points = curve.getPoints( 50 );
+        curve_geometry.setFromPoints( points );
+        state=1
+		break;
+		
+	  case 3: // pan mode
+     	cursor.position.x = pan.x 
+	    cursor.position.y = pan.y
+	    pan.set(mouse.x - pan.x, mouse.y - pan.y)
+		state=0;
+		break;
+	}
+	
+	
+	
+}
+
+function onMouseDown( event ) {
+
+	updateCursor()
+
+	switch(state)
+	{
+	  case 0: // free cursor
+	    pan.set(mouse.x - pan.x, mouse.y - pan.y)
+		state=3
+		break;
+	
+      case 1: // hover
+	    state = 2
+		break;
+
+	}
+}
+
+
+
+function animate() {
+	requestAnimationFrame( animate );
+	renderer.render( scene, camera );
+
+	}
+
+window.addEventListener( 'mousemove', onMouseMove, false );
+window.addEventListener( 'mouseup', onMouseUp, false );
+window.addEventListener( 'mousedown', onMouseDown, false );
+animate();
+
+		</script>
+	</body>
+</html>
