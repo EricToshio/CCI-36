@@ -119,8 +119,10 @@
       break;
 
       case 2: // drag mode
-        hover.position.x = mouse.x -pan.x
-      hover.position.y = mouse.y -pan.y
+        var new_x = Math.round(mouse.x -pan.x)
+        hover.position.x = new_x - new_x%100
+        var new_y = Math.round(mouse.y -pan.y)
+        hover.position.y = new_y - new_y%100
       break;
       
       case 3: // pan mode
@@ -140,8 +142,10 @@
   {
   
     case 2: // drag mode
-      hover.position.x = mouse.x - pan.x
-    hover.position.y = mouse.y - pan.y
+        var new_x = Math.round(mouse.x -pan.x)
+        hover.position.x = new_x - new_x%100
+        var new_y = Math.round(mouse.y -pan.y)
+        hover.position.y = new_y - new_y%100
 
         state=1
     break;
