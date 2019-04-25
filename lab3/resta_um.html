@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>Laboratório 3 - Resta um</title>
+    <style>
+    body { margin: 0; }
+    canvas { width: 100%; height: 100% }
+    </style>
+  </head>
+  <body>
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script>
+    // Configurações da cena
+    var scene = new THREE.Scene();
+    width=window.innerWidth;
+    height=window.innerHeight;
+    var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
+    scene.add( camera );
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor(0xFFFFFF,1);
+    document.body.appendChild( renderer.domElement );
+    camera.position.z = 5;
+
+    // Adicionar mapa
+    var grid = new THREE.GridHelper(1000,100,0x8888,0xEEEEEE);
+    grid.rotation.x=Math.PI/2
+    scene.add(grid);
+
+    // Definir geometria das peças
+    var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    // Cor quando selecionado
+    var highlite = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+
+    // Gerar vetor de posicao das pecas
+    var posicao = []
+    for (var i = -1; i < 2; i++) {
+      for (var j = -3; j < 4; j++){
+        if (i!=0 || j!=0) {
+          posicao.push([100*i, 100*j, 0])
+        } 
+      }
+    }
+    for (var i = -3; i < 4; i++) {
+      for (var j = -1; j < 2; j++){
+        if (i > 1 || i < -1 ) {
+          posicao.push([100*i, 100*j, 0])
+        } 
+      }
+    }
+
+    // adicionar pecas na posicao correta
+    var pecas = [];
+    for (var i = 0; i < posicao.length; i++) {
+      var peca_nova = new THREE.Mesh( geometry, material );
+      scene.add(peca_nova)
+      peca_nova.position.set(posicao[i][0], posicao[i][1], posicao[i][2])
+      pecas.push(peca_nova)
+    }
+    // Adicionar cursor
+    var cursor= new THREE.Mesh( new THREE.SphereGeometry(10), new THREE.MeshBasicMaterial({color:0xdddddd}))
+    cursor.position.z=-900
+    scene.add(cursor)
+
+    // Codigo copiado
+    var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2(-1000,-1000);
+  var nmouse = new THREE.Vector2(-1000,-1000);
+
+  var state = 0 
+
+  var hover=undefined
+
+  var pan= new THREE.Vector2(0,0)
+
+  function updateCursor() {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    nmouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    nmouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+    mouse.x= event.clientX -width/2
+    mouse.y= -event.clientY + height/2
+    
+    cursor.position.x = mouse.x -pan.x
+    cursor.position.y = mouse.y -pan.y
+
+    raycaster.setFromCamera( nmouse, camera );
+
+  }
+
+  function onMouseMove( event ) {
+
+    updateCursor()
+    
+    switch(state)
+    {
+      case 0: // free cursor
+          var intersects = raycaster.intersectObjects( pecas );
+      if (intersects.length>0)
+          {
+        state=1;
+        hover=intersects[0].object;
+        hover.material=highlite;
+      }
+      break;
+    
+        case 1: // hover
+        var intersects = raycaster.intersectObject( hover );
+      if (intersects.length==0)
+      {
+         hover.material=material
+         state=0
+         hover=undefined
+      }
+      break;
+
+      case 2: // drag mode
+        hover.position.x = mouse.x -pan.x
+      hover.position.y = mouse.y -pan.y
+      break;
+      
+      case 3: // pan mode
+        camera.position.x = pan.x - mouse.x
+      camera.position.y = pan.y - mouse.y
+        cursor.position.x = pan.x 
+        cursor.position.y = pan.y
+      break;
+    }
+  
+  }
+  function onMouseUp( event ) {
+
+  updateCursor()
+  
+  switch(state)
+  {
+  
+    case 2: // drag mode
+      hover.position.x = mouse.x - pan.x
+    hover.position.y = mouse.y - pan.y
+
+        state=1
+    break;
+    
+    case 3: // pan mode
+      cursor.position.x = pan.x 
+      cursor.position.y = pan.y
+      pan.set(mouse.x - pan.x, mouse.y - pan.y)
+    state=0;
+    break;
+  }
+  
+  
+  
+}
+function onMouseDown( event ) {
+
+  updateCursor()
+
+  switch(state)
+  {
+    case 0: // free cursor
+      pan.set(mouse.x - pan.x, mouse.y - pan.y)
+    state=3
+    break;
+  
+      case 1: // hover
+      state = 2
+    break;
+
+  }
+}
+function animate() {
+  requestAnimationFrame( animate );
+  renderer.render( scene, camera );
+
+  }
+
+window.addEventListener( 'mousemove', onMouseMove, false );
+window.addEventListener( 'mouseup', onMouseUp, false );
+window.addEventListener( 'mousedown', onMouseDown, false );
+animate();
+    
+
+
+    </script>
+  </body>
+</html>
