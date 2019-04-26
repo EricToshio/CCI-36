@@ -12,45 +12,101 @@
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script>
-    // Configurações da cena
+
+    /*************************************
+    Configurações da cena
+    **************************************/
     var scene = new THREE.Scene();
     width=window.innerWidth;
     height=window.innerHeight;
-    var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
-    scene.add( camera );
-    var renderer = new THREE.WebGLRenderer();
+    //var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
+    //scene.add( camera );
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    var renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setClearColor(0xFFFFFF,1);
+    renderer.setClearColor(0x220000);
     document.body.appendChild( renderer.domElement );
-    camera.position.z = 5;
 
-    // Adicionar mapa
+
+    /*************************************
+    Adicionar grid mapa
+    **************************************/
     var grid = new THREE.GridHelper(1000,100,0x8888,0xEEEEEE);
     grid.rotation.x=Math.PI/2
-    scene.add(grid);
+    //scene.add(grid);
 
-    // Definir geometria das peças
-    var geometry = new THREE.CircleGeometry( 10, 10, 10 );
+    /*************************************
+    definição das cores
+    **************************************/
+    var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
+    var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
+    var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
+    var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
+    var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+    var mat_highlight = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    var white=new THREE.MeshBasicMaterial( { color: 0xffffff} )
+    var black=new THREE.MeshBasicMaterial( { color: 0x333333} )
+
+
+    /*************************************
+    Definir geometria das peças
+    **************************************/
+
+
+    var geometry = new THREE.CircleGeometry( 20, 20, 20 );
     var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    // Cor quando selecionado
-    var highlite = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
 
-    // Gerar vetor de posicao das pecas
+
+
+    var slot_geo=new THREE.RingGeometry(20, 40)
+    var piece_geo = new THREE.CylinderGeometry(0.46, 0.46, 0.4, 32)
+
+    var slots=[]
+    var pieces=[]
     var posicao = []
+
+
+
+    /*************************************
+    Gerar vetor de posicao das pecas
+    **************************************/
+    var slot= new THREE.Mesh(slot_geo,white);
+    slot.position.x= 0;
+    slot.position.y= 0;
+    scene.add(slot);
+
+
     for (var i = -1; i < 2; i++) {
       for (var j = -3; j < 4; j++){
         if (i!=0 || j!=0) {
+
+          var slot= new THREE.Mesh(slot_geo,white);
+          slot.position.x= i*100;
+          slot.position.y= j*100;
+          scene.add(slot);
+          slots.push(slot);
+          slot.piece = null; // slot vazio
           posicao.push([100*i, 100*j, 0])
-        } 
+        }
       }
     }
     for (var i = -3; i < 4; i++) {
       for (var j = -1; j < 2; j++){
         if (i > 1 || i < -1 ) {
+
+
+          var slot= new THREE.Mesh(slot_geo,white);
+          slot.position.x= i*100;
+          slot.position.y= j*100;
+          scene.add(slot);
+          slots.push(slot);
+          slot.piece = null; // slot vazio
           posicao.push([100*i, 100*j, 0])
-        } 
+        }
       }
     }
+
+
 
     // adicionar pecas na posicao correta
     var pecas = [];
@@ -60,17 +116,40 @@
       peca_nova.position.set(posicao[i][0], posicao[i][1], posicao[i][2])
       pecas.push(peca_nova)
     }
+
+
     // Adicionar cursor
     var cursor= new THREE.Mesh( new THREE.SphereGeometry(10), new THREE.MeshBasicMaterial({color:0xdddddd}))
     cursor.position.z=-900
     scene.add(cursor)
 
+
+    var board_geo = new THREE.BoxGeometry(800,800,25);
+    var board= new THREE.Mesh(board_geo,black);
+    board.position.x= 0;
+    board.position.y= 0;
+    board.position.z=-13,5
+    scene.add(board);
+
+
+    var light =  new THREE.PointLight( 0xffffff, 1.0 );
+    light.position.set(4,4,2);
+    scene.add(light)
+
+    var camera = new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 0.5, 2000 );
+
+    camera.position.x = 10;
+    camera.position.z = 400;
+    camera.position.y = -700;
+    camera.up = new THREE.Vector3(0,0,3);
+    camera.lookAt(new THREE.Vector3(3, 4, 0));
+        scene.add( camera );
     // Codigo copiado
     var raycaster = new THREE.Raycaster();
   var mouse = new THREE.Vector2(-1000,-1000);
   var nmouse = new THREE.Vector2(-1000,-1000);
 
-  var state = 0 
+  var state = 0
 
   var hover=undefined
 
@@ -81,10 +160,10 @@
     // (-1 to +1) for both components
     nmouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     nmouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-    
+
     mouse.x= event.clientX -width/2
     mouse.y= -event.clientY + height/2
-    
+
     cursor.position.x = mouse.x -pan.x
     cursor.position.y = mouse.y -pan.y
 
@@ -95,7 +174,7 @@
   function onMouseMove( event ) {
 
     updateCursor()
-    
+
     switch(state)
     {
       case 0: // free cursor
@@ -104,10 +183,10 @@
           {
         state=1;
         hover=intersects[0].object;
-        hover.material=highlite;
+        hover.material=mat_highlight;
       }
       break;
-    
+
         case 1: // hover
         var intersects = raycaster.intersectObject( hover );
       if (intersects.length==0)
@@ -124,23 +203,23 @@
         var new_y = Math.round(mouse.y -pan.y)
         hover.position.y = new_y - new_y%100
       break;
-      
+
       case 3: // pan mode
         camera.position.x = pan.x - mouse.x
       camera.position.y = pan.y - mouse.y
-        cursor.position.x = pan.x 
+        cursor.position.x = pan.x
         cursor.position.y = pan.y
       break;
     }
-  
+
   }
   function onMouseUp( event ) {
 
   updateCursor()
-  
+
   switch(state)
   {
-  
+
     case 2: // drag mode
         var new_x = Math.round(mouse.x -pan.x)
         hover.position.x = new_x - new_x%100
@@ -149,17 +228,17 @@
 
         state=1
     break;
-    
+
     case 3: // pan mode
-      cursor.position.x = pan.x 
+      cursor.position.x = pan.x
       cursor.position.y = pan.y
       pan.set(mouse.x - pan.x, mouse.y - pan.y)
     state=0;
     break;
   }
-  
-  
-  
+
+
+
 }
 function onMouseDown( event ) {
 
@@ -171,13 +250,15 @@ function onMouseDown( event ) {
       pan.set(mouse.x - pan.x, mouse.y - pan.y)
     state=3
     break;
-  
+
       case 1: // hover
       state = 2
     break;
 
   }
 }
+
+
 function animate() {
   requestAnimationFrame( animate );
   renderer.render( scene, camera );
@@ -188,7 +269,7 @@ window.addEventListener( 'mousemove', onMouseMove, false );
 window.addEventListener( 'mouseup', onMouseUp, false );
 window.addEventListener( 'mousedown', onMouseDown, false );
 animate();
-    
+
 
 
     </script>
