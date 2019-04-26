@@ -19,15 +19,7 @@
     var scene = new THREE.Scene();
     width=window.innerWidth;
     height=window.innerHeight;
-    /*
-    var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
-    scene.add( camera );
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setClearColor(0xFFFFFF,1);
-    document.body.appendChild( renderer.domElement );
-    camera.position.z = 5;
-    */
+
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
     var renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -37,7 +29,7 @@
     camera.position.x = 4;
     camera.position.z = 600;
     camera.position.y = -700;
-    camera.up = new THREE.Vector3(0,0,10);
+    camera.up = new THREE.Vector3(4,700,600);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     var light =  new THREE.PointLight( 0xffffff, 1.0 );
@@ -54,6 +46,10 @@
     /*************************************
     definição das cores
     **************************************/
+    var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
+    var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
+    var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
+    var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
     var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
     var mat_highlight = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     var white=new THREE.MeshBasicMaterial( { color: 0xaaaaaa} )
