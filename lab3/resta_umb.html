@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>Laboratório 3 - Resta um</title>
+    <style>
+    body { margin: 0; }
+    canvas { width: 100%; height: 100% }
+    </style>
+  </head>
+  <body>
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script>
+
+    /*************************************
+    Configurações da cena
+    **************************************/
+    var scene = new THREE.Scene();
+    width=window.innerWidth;
+    height=window.innerHeight;
+    /*
+    var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, -1000, 1000 );
+    scene.add( camera );
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor(0xFFFFFF,1);
+    document.body.appendChild( renderer.domElement );
+    camera.position.z = 5;
+    */
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
+    var renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor(0x220000);
+    document.body.appendChild( renderer.domElement );
+
+    camera.position.x = 4;
+    camera.position.z = 600;
+    camera.position.y = -700;
+    camera.up = new THREE.Vector3(0,0,10);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    var light =  new THREE.PointLight( 0xffffff, 1.0 );
+    light.position.set(4,4,2);
+    scene.add(light)
+
+    /*************************************
+    Adicionar grid mapa
+    **************************************/
+    var grid = new THREE.GridHelper(1000,100,0x8888,0xEEEEEE);
+    grid.rotation.x=Math.PI/2
+    //scene.add(grid);
+
+    /*************************************
+    definição das cores
+    **************************************/
+    var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+    var mat_highlight = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    var white=new THREE.MeshBasicMaterial( { color: 0xaaaaaa} )
+    var black=new THREE.MeshBasicMaterial( { color: 0x333333} )
+
+
+    /*************************************
+    Definir geometria das peças
+    **************************************/
+    var geometry = new THREE.CylinderGeometry( 20, 20, 20,20 );
+    var material = new THREE.MeshBasicMaterial( { color: 0x8B4513 } );
+
+
+    var slot_geo=new THREE.RingGeometry(5, 25, 7)
+    var piece_geo = new THREE.CylinderGeometry(0.46, 0.46, 0.4, 32)
+
+    var slots=[]
+    var pieces=[]
+    var posicao = []
+
+
+
+    /*************************************
+    Gerar vetor de posicao das pecas
+    **************************************/
+    var slot= new THREE.Mesh(slot_geo,white);
+    slot.position.x= 0;
+    slot.position.y= 0;
+    scene.add(slot);
+
+
+    for (var i = -1; i < 2; i++) {
+      for (var j = -3; j < 4; j++){
+        if (i!=0 || j!=0) {
+
+          var slot= new THREE.Mesh(slot_geo,white);
+          slot.position.x= i*100;
+          slot.position.y= j*100;
+          scene.add(slot);
+          slots.push(slot);
+          slot.piece = null; // slot vazio
+          posicao.push([100*i, 100*j, 0])
+        }
+      }
+    }
+    for (var i = -3; i < 4; i++) {
+      for (var j = -1; j < 2; j++){
+        if (i > 1 || i < -1 ) {
+
+
+          var slot= new THREE.Mesh(slot_geo,white);
+          slot.position.x= i*100;
+          slot.position.y= j*100;
+          scene.add(slot);
+          slots.push(slot);
+          slot.piece = null; // slot vazio
+          posicao.push([100*i, 100*j, 0])
+        }
+      }
+    }
+
+
+    /*************************************
+    adicionar pecas na posicao correta
+    **************************************/
+    var pecas = [];
+    for (var i = 0; i < posicao.length; i++) {
+      var peca_nova = new THREE.Mesh( geometry, material );
+      peca_nova.rotation.x= Math.PI/2.0;
+      scene.add(peca_nova)
+      peca_nova.position.set(posicao[i][0], posicao[i][1], posicao[i][2])
+      pecas.push(peca_nova)
+    }
+
+
+
+
+
+    // Adicionar cursor
+    var cursor= new THREE.Mesh( new THREE.SphereGeometry(10), new THREE.MeshBasicMaterial({color:0xdddddd}))
+    cursor.position.z=-900
+    scene.add(cursor)
+
+
+    var board_geo = new THREE.BoxGeometry(800,800,25);
+    var board= new THREE.Mesh(board_geo,black);
+    board.position.x= 0;
+    board.position.y= 0;
+    board.position.z=-13,5
+    scene.add(board);
+
+
+
+
+    /*************************************
+    Codigo de Regra
+    **************************************/
+    for (var i = 0; i < posicao.length; i++) {
+      posicao[i].present = true
+    }
+    posicao.push([0,0,0])
+    posicao[posicao.length-1].present = false
+
+    for (var i = 0; i < pecas.length; i++) {
+      pecas[i].posicao_passada = pecas[i].position
+    }
+    function update_rule(pos_x,pos_y){
+      for (var i = 0; i < pecas.length; i++) {
+        if(pecas[i].position[0]==pos_x && pecas[i].position[1]==pos_y){
+          remove_x= (pos_x + pecas[i].posicao_passada[0])/2
+          remove_y= (pos_y + pecas[i].posicao_passada[1])/2
+          for (var j = 0; j < pecas.length; j++) {
+            if(pecas[j].position[0]==remove_x && pecas[j].position[1]==remove_y){
+              pecas[j].position.z = -1
+              pecas[j].position.x = 1
+            }
+          }
+          for (var j = 0; j < posicao.length; j++) {
+            posicao[j]
+            if(posicao[j][0]==remove_x && posicao[j][1]==remove_y){
+              position[j].present = false
+            }
+          }
+          pecas[i].posicao_passada = [pos_x, pos_y, 0]
+        }
+      }
+
+    }
+
+    // Codigo copiado
+  var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2(-1000,-1000);
+  var nmouse = new THREE.Vector2(-1000,-1000);
+
+  var state = 0
+
+  var hover=undefined
+
+  var pan= new THREE.Vector2(0,0)
+
+  function updateCursor() {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    nmouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    nmouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    mouse.x= event.clientX -width/2
+    mouse.y= -event.clientY + height/2
+
+    cursor.position.x = mouse.x -pan.x
+    cursor.position.y = mouse.y -pan.y
+
+    raycaster.setFromCamera( nmouse, camera );
+
+  }
+
+  function onMouseMove( event ) {
+
+    updateCursor()
+
+    switch(state)
+    {
+      case 0: // free cursor
+          var intersects = raycaster.intersectObjects( pecas );
+      if (intersects.length>0)
+          {
+        state=1;
+        hover=intersects[0].object;
+        hover.material=mat_highlight;
+      }
+      break;
+
+        case 1: // hover
+        var intersects = raycaster.intersectObject( hover );
+      if (intersects.length==0)
+      {
+         hover.material=material
+         state=0
+         hover=undefined
+      }
+      break;
+
+      case 2: // drag mode
+        var new_x = Math.round(mouse.x -pan.x)
+        new_position_x = new_x - new_x%100
+
+        var new_y = Math.round(mouse.y -pan.y)
+        new_position_y = new_y - new_y%100
+        var tem = false
+        for (var i = 0; i < posicao.length; i++) {
+          if(!posicao.present && posicao[i][0]== new_position_x && posicao[i][1]== new_position_y )
+          {
+            tem = true
+          }
+        }
+        if (tem){
+          hover.position.x = new_position_x
+          hover.position.y = new_position_y
+        }
+      break;
+
+      case 3: // pan mode
+        camera.position.x = pan.x - mouse.x
+      camera.position.y = pan.y - mouse.y
+        cursor.position.x = pan.x
+        cursor.position.y = pan.y
+      break;
+    }
+
+  }
+  function onMouseUp( event ) {
+
+  updateCursor()
+
+  switch(state)
+  {
+
+    case 2: // drag mode
+        var new_x = Math.round(mouse.x -pan.x)
+        new_position_x = new_x - new_x%100
+
+        var new_y = Math.round(mouse.y -pan.y)
+        new_position_y = new_y - new_y%100
+        var tem = false
+        for (var i = 0; i < posicao.length; i++) {
+          if(posicao[i][0]== new_position_x && posicao[i][1]== new_position_y)
+          {
+            tem = true
+          }
+        }
+        if (tem){
+
+          hover.position.x = new_position_x
+          hover.position.y = new_position_y
+          //update_rule(new_position_x, new_position_y)
+        }
+
+        state=1
+    break;
+
+    case 3: // pan mode
+      cursor.position.x = pan.x
+      cursor.position.y = pan.y
+      pan.set(mouse.x - pan.x, mouse.y - pan.y)
+    state=0;
+    break;
+  }
+
+
+
+}
+function onMouseDown( event ) {
+
+  updateCursor()
+
+  switch(state)
+  {
+    case 0: // free cursor
+      pan.set(mouse.x - pan.x, mouse.y - pan.y)
+    state=3
+    break;
+
+      case 1: // hover
+      state = 2
+    break;
+
+  }
+}
+
+
+function animate() {
+  requestAnimationFrame( animate );
+  renderer.render( scene, camera );
+
+  }
+
+window.addEventListener( 'mousemove', onMouseMove, false );
+window.addEventListener( 'mouseup', onMouseUp, false );
+window.addEventListener( 'mousedown', onMouseDown, false );
+animate();
+
+
+
+    </script>
+  </body>
+</html>
