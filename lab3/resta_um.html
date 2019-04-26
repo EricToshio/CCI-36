@@ -55,7 +55,7 @@
     **************************************/
 
     var geometry = new THREE.CircleGeometry( 20, 20, 20 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    var material = new THREE.MeshBasicMaterial( { color: 0x8B4513 } );
 
 
 
@@ -119,6 +119,9 @@
     }
 
 
+
+
+
     // Adicionar cursor
     var cursor= new THREE.Mesh( new THREE.SphereGeometry(10), new THREE.MeshBasicMaterial({color:0xdddddd}))
     cursor.position.z=-900
@@ -135,6 +138,40 @@
 
 
 
+    /*************************************
+    Codigo de Regra
+    **************************************/
+    for (var i = 0; i < posicao.length; i++) {
+      posicao[i].present = true
+    }
+    posicao.push([0,0,0])
+    posicao[posicao.length-1].present = false
+
+    for (var i = 0; i < pecas.length; i++) {
+      pecas[i].posicao_passada = pecas[i].position
+    }
+    function update_rule(pos_x,pos_y){
+      for (var i = 0; i < pecas.length; i++) {
+        if(pecas[i].position[0]==pos_x && pecas[i].position[1]==pos_y){
+          remove_x= (pos_x + pecas[i].posicao_passada[0])/2
+          remove_y= (pos_y + pecas[i].posicao_passada[1])/2
+          for (var j = 0; j < pecas.length; j++) {
+            if(pecas[j].position[0]==remove_x && pecas[j].position[1]==remove_y){
+              pecas[j].position.z = -1
+              pecas[j].position.x = 1
+            }
+          }
+          for (var j = 0; j < posicao.length; j++) {
+            posicao[j]
+            if(posicao[j][0]==remove_x && posicao[j][1]==remove_y){
+              position[j].present = false
+            }
+          }
+          pecas[i].posicao_passada = [pos_x, pos_y, 0]
+        }
+      }
+
+    }
 
     // Codigo copiado
     var raycaster = new THREE.Raycaster();
@@ -191,9 +228,21 @@
 
       case 2: // drag mode
         var new_x = Math.round(mouse.x -pan.x)
-        hover.position.x = new_x - new_x%100
+        new_position_x = new_x - new_x%100
+        
         var new_y = Math.round(mouse.y -pan.y)
-        hover.position.y = new_y - new_y%100
+        new_position_y = new_y - new_y%100
+        var tem = false
+        for (var i = 0; i < posicao.length; i++) {
+          if(!posicao.present && posicao[i][0]== new_position_x && posicao[i][1]== new_position_y )
+          {
+            tem = true
+          }
+        }
+        if (tem){
+          hover.position.x = new_position_x
+          hover.position.y = new_position_y 
+        }
       break;
 
       case 3: // pan mode
@@ -214,10 +263,24 @@
 
     case 2: // drag mode
         var new_x = Math.round(mouse.x -pan.x)
-        hover.position.x = new_x - new_x%100
+        new_position_x = new_x - new_x%100
+        
         var new_y = Math.round(mouse.y -pan.y)
-        hover.position.y = new_y - new_y%100
-
+        new_position_y = new_y - new_y%100
+        var tem = false
+        for (var i = 0; i < posicao.length; i++) {
+          if(posicao[i][0]== new_position_x && posicao[i][1]== new_position_y)
+          {
+            tem = true
+          }
+        }
+        if (tem){
+          
+          hover.position.x = new_position_x
+          hover.position.y = new_position_y
+          //update_rule(new_position_x, new_position_y)
+        }
+        
         state=1
     break;
 
