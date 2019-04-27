@@ -20,7 +20,7 @@
 		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		var renderer = new THREE.WebGLRenderer({antialias: true});
 		renderer.setSize( window.innerWidth, window.innerHeight );
-		renderer.setClearColor(0x800000);
+		renderer.setClearColor(0xF9F9F9);
 		document.body.appendChild( renderer.domElement );
 		/*************************************
 		Criar pecas
@@ -30,50 +30,55 @@
 		var piece_geo = new THREE.CylinderGeometry(0.46/2.5, 0.46/2, 0.4, 100)
 		var slots=[]
 		var pieces=[]
-		var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88, opacity: 0} )
-		var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522, opacity: 0} )
-		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff, opacity: 0} )
-		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411, opacity: 0} )
-		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA, opacity: 0.5} )
-		for (var i=0; i<7; i++)
-		for (var j=0; j<7; j++)
-		{
-		var slot= new THREE.Mesh( slot_geo, (i+j)%2?mat_dark:mat_dark);
-		var slot2 = makeTiles((i+j)%2?mat_dark:mat_dark);
-			// Adicionar pecas e campo
-			if((i>1||j>1)&&(i<5||j<5)&&(i<5||j>1)&&(i>1||j<5)&&(i!=3||j!=3))
+		var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
+		var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
+		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
+		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
+		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+		var mat_transparent = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.DoubleSide, opacity: 0.0, transparent: true, depthWrite: false})
+		for (var i=0; i<7; i++){
+			for (var j=0; j<7; j++)
 			{
-			slot.is_clear=(i+j)%2;
-			slot.position.x = i;
-			slot.position.y = j;
-			slot2.position.x = i;
-			slot2.position.y = j;
-			scene.add(slot2);
-			scene.add(slot);
-			slots.push(slot);
-			slot.piece = null; // slot vazio
-			var piece = new THREE.Mesh(piece_geo,mat_white)
-			piece.is_white=true;
-			piece.position.x= i;
-			piece.position.y= j;
-			piece.position.z=0.4
-			piece.rotation.x= Math.PI/2.0;
-			scene.add(piece)
-			pieces.push(piece)
-			slot.piece = piece; // slot tem peça
-			piece.slot = slot; // slot da peça
-			}
-			// Adicionar slot central
-			if(i==3&&j==3){
-			slot.is_clear=(i+j)%2;
-			slot.position.x= i;
-			slot.position.y= j;
-			slot2.position.x = i;
-			slot2.position.y = j;
-			scene.add(slot2);
-			scene.add(slot);
-			slots.push(slot);
-			slot.piece = null; // slot vazio
+				var slot= new THREE.Mesh( slot_geo, mat_transparent);
+				var slot2 = makeTiles((i+j)%2?mat_dark:mat_dark);
+				// Adicionar pecas e campo
+				if((i>1||j>1)&&(i<5||j<5)&&(i<5||j>1)&&(i>1||j<5)&&(i!=3||j!=3))
+				{
+					slot.is_clear=(i+j)%2;
+					slot.position.x = i;
+					slot.position.y = j;
+					slot.position.z = 0.22;
+					slot2.position.x = i;
+					slot2.position.y = j;
+					scene.add(slot2);
+					scene.add(slot);
+					slots.push(slot);
+					slot.piece = null; // slot vazio
+					var piece = new THREE.Mesh(piece_geo,mat_white)
+					piece.is_white=true;
+					piece.position.x= i;
+					piece.position.y= j;
+					piece.position.z=0.4
+					piece.rotation.x= Math.PI/2.0;
+					scene.add(piece)
+					pieces.push(piece)
+					slot.piece = piece; // slot tem peça
+					piece.slot = slot; // slot da peça
+				}
+				// Adicionar slot central
+				if(i==3&&j==3){
+					slot.is_clear=(i+j)%2;
+					slot.position.x= i;
+					slot.position.y= j;
+					slot.position.z = 0.22;
+					slot2.position.x = i;
+					slot2.position.y = j;
+
+					scene.add(slot2);
+					scene.add(slot);
+					slots.push(slot);
+					slot.piece = null; // slot vazio
+				}
 			}
 		}
 		/*************************************
@@ -85,11 +90,11 @@
 		/*************************************
 		Configurar camera
 		**************************************/	
-		camera.position.x = 4;
+		camera.position.x = 5;
+		camera.position.y = 5;
 		camera.position.z = 5;
-		camera.position.y = -3;
-		camera.up = new THREE.Vector3(0,0,1);
-		camera.lookAt(new THREE.Vector3(4, 4, 0));
+		camera.up.set(0,0,1);
+		camera.lookAt(new THREE.Vector3(3.5, 3.5, 0));
 		/*************************************
 		Regra para movimentos validos (verifica se pulou alguma peca e remove se for o caso)
 		**************************************/
@@ -130,7 +135,7 @@
 		/*************************************
 		Animacao
 		**************************************/
-		var controls = new THREE.OrbitControls(camera);	
+		// var controls = new THREE.OrbitControls(camera);	
 		var anim_time=0;
 		boardcenter = new THREE.Vector3(3.5, 3.5, 0)
 		var raycaster = new THREE.Raycaster();
@@ -157,7 +162,7 @@
 				for (i=0; i<pieces.length; i++)
 					pieces[i].material=mat_white; 
 				for (i=0; i<slots.length; i++)
-					slots[i].material=mat_dark;
+					slots[i].material=mat_transparent;
 				updateCursor();
 			}
 			if (event.type=='mousemove' && state=='preselect')
@@ -172,6 +177,7 @@
 				intersects = raycaster.intersectObjects(pieces)
 				if (intersects.length) {
 					intersects[0].object.material=mat_highlight;
+					// intersects[0].object.material=mat_transparent;
 				}
 			}
 			
@@ -224,7 +230,7 @@
 
 						grab.position.x=target_slot.position.x;
 						grab.position.y=target_slot.position.y;
-						grab.position.z=0.5;
+						grab.position.z=0.4;
 						state='preselect'
 						anim_time=0;
 
@@ -238,7 +244,7 @@
 				origin_slot=grab.slot
 				grab.position.x=origin_slot.position.x;
 				grab.position.y=origin_slot.position.y;
-				grab.position.z=0.5;
+				grab.position.z=0.4;
 				grab=null
 				return; // sempre retornar se mudou de estado
 			
@@ -264,18 +270,11 @@
 					grab.position.y=grab_y;
 				}
 			}
-			
-			
-			}
+		}
 		function animate() {
 			//controls.update()
 			requestAnimationFrame( animate );
 			state_update(new Event('paint'));
-			camera.position.x = 6;
-			camera.position.y = 4;
-			camera.position.z = 5;
-			camera.up.set(0,0,1);
-			camera.lookAt(boardcenter);
 			renderer.render( scene, camera );
 		}
 		window.addEventListener( 'mousemove', state_update, false );

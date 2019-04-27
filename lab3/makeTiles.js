@@ -34,9 +34,15 @@ function makeTiles(material) {
 	boxMesh.position.set( 0, 0, 0 );
 	boxMesh.scale.set(0.125,0.125,0.125);
 
+
 	var tile = new THREE.Group();
     tile.add(boxMesh);
     tile.add(internalCylinder);
+	
+	// var floorGeometry = new THREE.PlaneGeometry( 1, 1 );
+	// var floor = new THREE.Mesh(floorGeometry,material);
+	// floor.position.set(0,0,-0.01);
+ //    tile.add(floor);
     return tile;
 
 }
