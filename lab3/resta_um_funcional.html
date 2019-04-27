@@ -131,10 +131,7 @@
 		Animacao
 		**************************************/
 		var controls = new THREE.OrbitControls(camera);	
-		var t_blacks=Math.PI/2.0;
-		var t_whites=3.0*Math.PI/2.0;
 		var anim_time=0;
-		t=t_whites
 		boardcenter = new THREE.Vector3(3.5, 3.5, 0)
 		var raycaster = new THREE.Raycaster();
 		var mouse = new THREE.Vector2(-1000,-1000);
@@ -153,15 +150,14 @@
 		}
 		var state='preselect'
 		var grab=null;
-		var whites_turn=true;
 		var grab_x, grab_y;
 		function state_update(event) {
 			if (event.type!='paint')
 			{
 				for (i=0; i<pieces.length; i++)
-					if (pieces[i].is_white) pieces[i].material=mat_white; else pieces[i].material=mat_black;
+					pieces[i].material=mat_white; 
 				for (i=0; i<slots.length; i++)
-					slots[i].material= slots[i].is_clear? mat_dark: mat_dark;
+					slots[i].material=mat_dark;
 				updateCursor();
 			}
 			if (event.type=='mousemove' && state=='preselect')
@@ -175,7 +171,7 @@
 				
 				intersects = raycaster.intersectObjects(pieces)
 				if (intersects.length) {
-				if (intersects[0].object.is_white==whites_turn) intersects[0].object.material=mat_highlight;
+					intersects[0].object.material=mat_highlight;
 				}
 			}
 			
@@ -183,8 +179,6 @@
 			{
 				intersects = raycaster.intersectObjects(pieces)
 				if (intersects.length) {
-				if (intersects[0].object.is_white==whites_turn)
-					{
 					state='grab'
 					grab = intersects[0].object;
 					grab.position.z=1.0;
@@ -192,7 +186,6 @@
 					grab_y=grab.position.y;
 
 					return; // sempre retornar se mudou de estado
-					}
 				}
 			}
 			
@@ -251,13 +244,6 @@
 			
 			}
 			
-			if (event.type=='paint' && state=='turning')
-			{
-			anim_time=anim_time+0.05;
-				if(whites_turn) t=t_blacks+anim_time;
-				else t=t_whites+anim_time;
-				if (anim_time>Math.PI) state='preselect';
-			}
 			
 			if (event.type=='paint' && state=='grab')
 			{
@@ -269,33 +255,33 @@
 				var dist=Math.sqrt(dirx*dirx+diry*diry);
 				if (dist > vel)
 				{
-				grab.position.x=x+vel*dirx/dist;
-				grab.position.y=y+vel*diry/dist;
+					grab.position.x=x+vel*dirx/dist;
+					grab.position.y=y+vel*diry/dist;
 				}
 				else
 				{
-				grab.position.x=grab_x;
-				grab.position.y=grab_y;
+					grab.position.x=grab_x;
+					grab.position.y=grab_y;
 				}
 			}
 			
 			
 			}
-			function animate() {
+		function animate() {
 			//controls.update()
 			requestAnimationFrame( animate );
 			state_update(new Event('paint'));
 			camera.position.x = 6;
 			camera.position.y = 4;
 			camera.position.z = 5;
-			camera.up.set(0,0,1)
+			camera.up.set(0,0,1);
 			camera.lookAt(boardcenter);
 			renderer.render( scene, camera );
-			}
-			window.addEventListener( 'mousemove', state_update, false );
-			window.addEventListener( 'mouseup', state_update, false );
-			window.addEventListener( 'mousedown', state_update, false );
-			animate();
-			</script>
-		</body>
-	</html>
+		}
+		window.addEventListener( 'mousemove', state_update, false );
+		window.addEventListener( 'mouseup', state_update, false );
+		window.addEventListener( 'mousedown', state_update, false );
+		animate();
+		</script>
+	</body>
+</html>
