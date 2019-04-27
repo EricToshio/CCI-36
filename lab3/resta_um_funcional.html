@@ -11,6 +11,7 @@
 	<body>
 		<script src="js/three.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script type="text/javascript" src="makeTiles.js"></script>
 		<script>
 		/*************************************
 		Configurações da cena
@@ -24,26 +25,30 @@
 		/*************************************
 		Criar pecas
 		**************************************/	
-		var slot_geo=new THREE.BoxGeometry(1, 1, 0.2)
-		var piece_geo = new THREE.CylinderGeometry(0.46, 0.46, 0.4, 100)
+		// var slot_geo=new THREE.BoxGeometry(1, 1, 0.2)
+		var slot_geo = new THREE.PlaneGeometry( 1, 1 );
+		var piece_geo = new THREE.CylinderGeometry(0.46/2.5, 0.46/2, 0.4, 100)
 		var slots=[]
 		var pieces=[]
-		var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
-		var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
-		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
-		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
-		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+		var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88, opacity: 0} )
+		var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522, opacity: 0} )
+		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff, opacity: 0} )
+		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411, opacity: 0} )
+		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA, opacity: 0.5} )
 		for (var i=0; i<7; i++)
 		for (var j=0; j<7; j++)
 		{
-		var slot= new THREE.Mesh( slot_geo, (i+j)%2?mat_clear:mat_dark);
-
+		var slot= new THREE.Mesh( slot_geo, (i+j)%2?mat_dark:mat_dark);
+		var slot2 = makeTiles((i+j)%2?mat_dark:mat_dark);
 			// Adicionar pecas e campo
 			if((i>1||j>1)&&(i<5||j<5)&&(i<5||j>1)&&(i>1||j<5)&&(i!=3||j!=3))
 			{
 			slot.is_clear=(i+j)%2;
-			slot.position.x= i;
-			slot.position.y= j;
+			slot.position.x = i;
+			slot.position.y = j;
+			slot2.position.x = i;
+			slot2.position.y = j;
+			scene.add(slot2);
 			scene.add(slot);
 			slots.push(slot);
 			slot.piece = null; // slot vazio
@@ -63,6 +68,9 @@
 			slot.is_clear=(i+j)%2;
 			slot.position.x= i;
 			slot.position.y= j;
+			slot2.position.x = i;
+			slot2.position.y = j;
+			scene.add(slot2);
 			scene.add(slot);
 			slots.push(slot);
 			slot.piece = null; // slot vazio
@@ -72,7 +80,7 @@
 		Adicionar luz
 		**************************************/	
 		var light =  new THREE.PointLight( 0xffffff, 1.0 );
-		light.position.set(4,4,2);
+		light.position.set(5,4,3);
 		scene.add(light)
 		/*************************************
 		Configurar camera
@@ -150,17 +158,19 @@
 		function state_update(event) {
 			if (event.type!='paint')
 			{
-			for (i=0; i<pieces.length; i++)
-			if (pieces[i].is_white) pieces[i].material=mat_white; else pieces[i].material=mat_black;
-			for (i=0; i<slots.length; i++)
-			slots[i].material= slots[i].is_clear? mat_clear: mat_dark;
-			updateCursor();
+				for (i=0; i<pieces.length; i++)
+					if (pieces[i].is_white) pieces[i].material=mat_white; else pieces[i].material=mat_black;
+				for (i=0; i<slots.length; i++)
+					slots[i].material= slots[i].is_clear? mat_dark: mat_dark;
+				updateCursor();
 			}
 			if (event.type=='mousemove' && state=='preselect')
 			{
-			intersects = raycaster.intersectObjects(slots)
+				intersects = raycaster.intersectObjects(slots)
 				if (intersects.length) {
-				if (!intersects[0].object.piece) intersects[0].object.material=mat_highlight;
+					if (!intersects[0].object.piece) {
+						intersects[0].object.material=mat_highlight;
+					}
 				}
 				
 				intersects = raycaster.intersectObjects(pieces)
