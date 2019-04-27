@@ -32,7 +32,8 @@
 		var pieces=[]
 		var mat_clear=new THREE.MeshLambertMaterial( { color: 0xffff88} )
 		var mat_dark=new THREE.MeshLambertMaterial( { color: 0x665522} )
-		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
+		var mat_white=new THREE.MeshLambertMaterial({color: 0xFFFFFF})
+		var mat_white_remove=new THREE.MeshLambertMaterial({color: 0xFFFFFF, side: THREE.DoubleSide, opacity: 1.0, transparent: true})
 		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
 		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
 		var mat_allowed_move = new THREE.MeshBasicMaterial( {color:0x00FF00} )
@@ -62,7 +63,7 @@
 					slots.push(slot);
 					slot.piece = null; // slot vazio
 					boardArray[i][j] = slot;
-					var piece = new THREE.Mesh(piece_geo,mat_white)
+					var piece = new THREE.Mesh(piece_geo, mat_white)
 					piece.is_white=true;
 					piece.live = true;
 					piece.position.x= i;
@@ -118,13 +119,13 @@
 				for (var i = 0; i < slots.length; i++) {
 					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
 					{
-						scene.remove(slots[i].piece);
+						// scene.remove(slots[i].piece);
 						for( var j = 0; j < pieces.length; j++){ 
 						   if (pieces[j] === slots[i].piece) {
 						     pieces.splice(j, 1); 
 						   }
 						}
-						slots[i].piece = null;
+						// slots[i].piece = null;
 						return true;
 					}
 				}
@@ -137,13 +138,13 @@
 				for (var i = 0; i < slots.length; i++) {
 					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
 					{
-						scene.remove(slots[i].piece);
+						// scene.remove(slots[i].piece);
 						for( var j = 0; j < pieces.length; j++){ 
 						   if (pieces[j] === slots[i].piece) {
 						     pieces.splice(j, 1); 
 						   }
 						}
-						slots[i].piece = null;
+						// slots[i].piece = null;
 						return true;
 					}
 				}
@@ -210,6 +211,16 @@
 			updateCursor();
 		}
 
+		function getPieceToRemove(piece, target) {
+			var x = (piece.position.x+target.position.x)/2;
+			var y = (piece.position.y+target.position.y)/2;
+			return boardArray[x][y].piece;
+		}
+
+		function fadeOutPiece(piece, counter, limit) {
+			piece.material.opacity = (limit-counter)/limit;
+		}
+
 		function changePosition(piece, inc, target) {
 			if(target.position.x - piece.position.x){
 				//deslocamento no eixo x
@@ -245,6 +256,7 @@
 			piece.position.z += 0.4;
 		}
 
+		var pieceToRemove = null;
 		function state_update(event) {
 			if (event.type!='paint' && state!="selected")
 				clear_changes();
@@ -293,6 +305,9 @@
 					{
 						state = "moving";
 						counter = 0;
+						pieceToRemove = getPieceToRemove(select, target_slot);
+						pieceToRemove.material = mat_white_remove;
+						pieceToRemove.material.opacity = 1;
 					
 						return; // sempre retornar se mudou de estado
 					}					
@@ -306,8 +321,11 @@
 				var inc = 0.1;
 				if(counter != 2.0/inc){
 					changePosition(select, inc, target_slot);
+					fadeOutPiece(pieceToRemove, counter, 2.0/inc);
 					counter++;
 				} else {
+					pieceToRemove.slot.piece = null;
+					scene.remove(pieceToRemove);
 					console.log('actual: x =',select.slot.position.x,' y =',select.slot.position.y);
 					origin_slot = select.slot;
 					origin_slot.piece=null;
