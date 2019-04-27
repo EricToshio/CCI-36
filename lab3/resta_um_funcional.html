@@ -25,7 +25,6 @@
 		/*************************************
 		Criar pecas
 		**************************************/	
-		// var slot_geo=new THREE.BoxGeometry(1, 1, 0.2)
 		var slot_geo = new THREE.PlaneGeometry( 1, 1 );
 		var piece_geo = new THREE.CylinderGeometry(0.46/2.5, 0.46/2, 0.4, 100)
 		var slots=[]
@@ -106,50 +105,33 @@
 		camera.position.z = 5;
 		camera.up.set(0,0,1);
 		camera.lookAt(new THREE.Vector3(3.5, 3.5, 0));
+
+
+		function removeElementFromArray(array, element) {
+			for( var j = 0; j < array.length; j++) 
+			   if (array[j] === element) 
+			   	  array.splice(j, 1); 
+		}
+
 		/*************************************
 		Regra para movimentos validos (verifica se pulou alguma peca e remove se for o caso)
 		**************************************/
 		function verify(grab, target_slot)
 		{	
+			var dx = Math.abs(grab.slot.position.x - target_slot.position.x);
+			var dy = Math.abs(grab.slot.position.y - target_slot.position.y);
 			var peca_pulada = [];
-			if(Math.abs(grab.slot.position.x - target_slot.position.x)==2 && grab.slot.position.y - target_slot.position.y == 0)
-			{
-				peca_pulada.x = (grab.slot.position.x + target_slot.position.x)/2;
-				peca_pulada.y = grab.slot.position.y;
-				for (var i = 0; i < slots.length; i++) {
-					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
-					{
-						// scene.remove(slots[i].piece);
-						for( var j = 0; j < pieces.length; j++){ 
-						   if (pieces[j] === slots[i].piece) {
-						     pieces.splice(j, 1); 
-						   }
-						}
-						// slots[i].piece = null;
-						return true;
-					}
-				}
+			peca_pulada.x = (grab.slot.position.x + target_slot.position.x)/2;
+			peca_pulada.y = (grab.slot.position.y + target_slot.position.y)/2;
 
-			}
-			if(Math.abs(grab.slot.position.y - target_slot.position.y)==2 && grab.slot.position.x - target_slot.position.x == 0)
-			{
-				peca_pulada.x = grab.slot.position.x;
-				peca_pulada.y = (grab.slot.position.y + target_slot.position.y)/2;
-				for (var i = 0; i < slots.length; i++) {
-					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
-					{
-						// scene.remove(slots[i].piece);
-						for( var j = 0; j < pieces.length; j++){ 
-						   if (pieces[j] === slots[i].piece) {
-						     pieces.splice(j, 1); 
-						   }
-						}
-						// slots[i].piece = null;
-						return true;
-					}
+			if((dx==2 && dy==0) || (dx==0 && dy==2)){
+				var slot_selected = boardArray[peca_pulada.x][peca_pulada.y];
+				if(slot_selected && slot_selected.piece){
+					removeElementFromArray(pieces, slot_selected.piece);
+					return true;
 				}
 			}
-
+			return false;
 		}
 
 		/*************************************
@@ -221,37 +203,37 @@
 			piece.material.opacity = (limit-counter)/limit;
 		}
 
+		function getPath(x) {
+			return -x*x+2*x;
+		}
+
 		function changePosition(piece, inc, target) {
 			if(target.position.x - piece.position.x){
 				//deslocamento no eixo x
+				var offset = target.position.x;
+				var fakeX = piece.position.x - offset;
 				if(target.position.x - piece.position.x > 0){
-					var offset = target.position.x - 2;
-					var fakeX = piece.position.x - offset;
+					offset = offset - 2;
+					fakeX = fakeX + 2;
 					fakeX = fakeX + inc;
-					piece.position.z = -(fakeX)*(fakeX) + 2*(fakeX);
-					piece.position.x = fakeX + offset;
-				} else {
-					var offset = target.position.x;
-					var fakeX = piece.position.x - offset;
+				} else 
 					fakeX = fakeX - inc;
-					piece.position.z = -(fakeX)*(fakeX) + 2*(fakeX);
-					piece.position.x = fakeX + offset;
-				}
+				
+				piece.position.z = getPath(fakeX);
+				piece.position.x = fakeX + offset;
 			} else {
 				//deslocamento no eixo y
+				var offset = target.position.y;
+				var fakeY = piece.position.y - offset;
 				if(target.position.y - piece.position.y > 0){
-					var offset = target.position.y - 2;
-					var fakeY = piece.position.y - offset;
+					offset = offset - 2;
+					fakeY = fakeY + 2;
 					fakeY = fakeY + inc;
-					piece.position.z = -(fakeY)*(fakeY) + 2*(fakeY);
-					piece.position.y = fakeY + offset;
-				} else {
-					var offset = target.position.y;
-					var fakeY = piece.position.y - offset;
+				} else 
 					fakeY = fakeY - inc;
-					piece.position.z = -(fakeY)*(fakeY) + 2*(fakeY);
-					piece.position.y = fakeY + offset;
-				}
+				
+				piece.position.z = getPath(fakeY);
+				piece.position.y = fakeY + offset;
 			}
 			piece.position.z += 0.4;
 		}
