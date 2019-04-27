@@ -91,7 +91,6 @@
 				}
 			}
 		}
-		console.log(boardArray);
 		/*************************************
 		Adicionar luz
 		**************************************/	
@@ -112,7 +111,6 @@
 		function verify(grab, target_slot)
 		{	
 			var peca_pulada = [];
-			console.log("aqui 3",Math.abs(grab.slot.position.y - target_slot.position.y));
 			if(Math.abs(grab.slot.position.x - target_slot.position.x)==2 && grab.slot.position.y - target_slot.position.y == 0)
 			{
 				peca_pulada.x = (grab.slot.position.x + target_slot.position.x)/2;
@@ -162,6 +160,7 @@
 		var raycaster = new THREE.Raycaster();
 		var mouse = new THREE.Vector2(-1000,-1000);
 		var nmouse = new THREE.Vector2(-1000,-1000);
+
 		function updateCursor() {
 			var width=window.innerWidth;
 			var height=window.innerHeight;
@@ -180,6 +179,8 @@
 		var select=null;
 		var select_origin_x, select_origin_y;
 		var adjacents = [];
+		var target_slot = null;
+		var counter = 0;
 
 		function getAdjacents(x,y) {
 			returnList = [];
@@ -191,13 +192,14 @@
 				returnList.push(boardArray[x][y+2]);
 			if(y-2<6 && boardArray[x][y-2] && !boardArray[x][y-2].piece && boardArray[x][y-1].piece)
 				returnList.push(boardArray[x][y-2]);
-			console.log("tamanho da lista",returnList.length);
 			return returnList;
 		}
+
 		function changeMaterial(listOfObjects, materialToApply){
 			for(var i=0;i<listOfObjects.length;i++)
 				listOfObjects[i].material = materialToApply;
 		}
+
 		function clear_changes(){
 			for (i=0; i<pieces.length; i++){
 				pieces[i].material=mat_white;
@@ -207,9 +209,43 @@
 			}
 			updateCursor();
 		}
+
+		function changePosition(piece, inc, target) {
+			if(target.position.x - piece.position.x){
+				//deslocamento no eixo x
+				if(target.position.x - piece.position.x > 0){
+					var offset = target.position.x - 2;
+					var fakeX = piece.position.x - offset;
+					fakeX = fakeX + inc;
+					piece.position.z = -(fakeX)*(fakeX) + 2*(fakeX);
+					piece.position.x = fakeX + offset;
+				} else {
+					var offset = target.position.x;
+					var fakeX = piece.position.x - offset;
+					fakeX = fakeX - inc;
+					piece.position.z = -(fakeX)*(fakeX) + 2*(fakeX);
+					piece.position.x = fakeX + offset;
+				}
+			} else {
+				//deslocamento no eixo y
+				if(target.position.y - piece.position.y > 0){
+					var offset = target.position.y - 2;
+					var fakeY = piece.position.y - offset;
+					fakeY = fakeY + inc;
+					piece.position.z = -(fakeY)*(fakeY) + 2*(fakeY);
+					piece.position.y = fakeY + offset;
+				} else {
+					var offset = target.position.y;
+					var fakeY = piece.position.y - offset;
+					fakeY = fakeY - inc;
+					piece.position.z = -(fakeY)*(fakeY) + 2*(fakeY);
+					piece.position.y = fakeY + offset;
+				}
+			}
+			piece.position.z += 0.4;
+		}
+
 		function state_update(event) {
-			if(event.type != 'paint' && event.type != 'mousemove')
-				console.log(event.type, state);
 			if (event.type!='paint' && state!="selected")
 				clear_changes();
 			
@@ -230,7 +266,6 @@
 					select.material =mat_highlight;
 					select_origin_x=select.position.x;
 					select_origin_y=select.position.y;
-					console.log("selecionou a peca na posicao ",select_origin_x, select_origin_y);
 					adjacents = getAdjacents(select_origin_x, select_origin_y);
 					changeMaterial(adjacents, mat_allowed_move);
 					return; // sempre retornar se mudou de estado
@@ -243,37 +278,21 @@
 				intersects = raycaster.intersectObjects(slots);
 				if (intersects.length) 
 				{
-					console.log("interceptou algo");
 					if(intersects[0].object.piece){
 						select = intersects[0].object.piece;
 						select.material=mat_highlight;
 						select_origin_x=select.position.x;
 						select_origin_y=select.position.y;
-						console.log("selecionou a peca na posicao 2",select_origin_x, select_origin_y);
 						adjacents = getAdjacents(select_origin_x, select_origin_y);
 						changeMaterial(adjacents, mat_allowed_move);
 						return; // sempre retornar se mudou de estado
-					} else {
-						console.log("peca morta");
-					}
+					} 
 					
-					console.log("interceptou no slot tambem");
 					target_slot=intersects[0].object;
-					console.log("voce quer ir para ",target_slot.position.x, target_slot.position.y);
 					if ( !target_slot.piece && verify(select,target_slot)) 
 					{
-						console.log('actual: x =',select.slot.position.x,' y =',select.slot.position.y);
-						origin_slot = select.slot;
-						origin_slot.piece=null;
-						select.slot=target_slot;
-						target_slot.piece=select;
-						console.log('target: x =',target_slot.position.x,' y =',target_slot.position.y);
-
-						select.position.x=target_slot.position.x;
-						select.position.y=target_slot.position.y;
-						select.position.z=0.4;
-						state='preselect';
-						anim_time=0;
+						state = "moving";
+						counter = 0;
 					
 						return; // sempre retornar se mudou de estado
 					}					
@@ -283,65 +302,28 @@
 				clear_changes();
 				return; // sempre retornar se mudou de estado
 			}
-			
-			// if (event.type=='mouseup' && state=='grab')
-			// {
-			// 	//console.log(event.type);
-			// 	intersects = raycaster.intersectObjects(slots)
-			// 	if (intersects.length) 
-			// 	{
-			// 		target_slot=intersects[0].object;
-			// 		if ( !target_slot.piece && verify(grab,target_slot)) 
-			// 		{
-			// 			console.log('actual: x =',grab.slot.position.x,' y =',grab.slot.position.y);
-			// 			origin_slot=grab.slot
-			// 			origin_slot.piece=null;
-			// 			target_slot.piece=grab;
-			// 			grab.slot=target_slot;
-			// 			console.log('target: x =',target_slot.position.x,' y =',target_slot.position.y);
+			if (state == 'moving'){
+				var inc = 0.1;
+				if(counter != 2.0/inc){
+					changePosition(select, inc, target_slot);
+					counter++;
+				} else {
+					console.log('actual: x =',select.slot.position.x,' y =',select.slot.position.y);
+					origin_slot = select.slot;
+					origin_slot.piece=null;
+					select.slot=target_slot;
+					target_slot.piece=select;
+					console.log('target: x =',target_slot.position.x,' y =',target_slot.position.y);
 
-			// 			grab.position.x=target_slot.position.x;
-			// 			grab.position.y=target_slot.position.y;
-			// 			grab.position.z=0.4;
-			// 			state='preselect';
-			// 			anim_time=0;
-
-					
-			// 			grab=null;
-			// 			return; // sempre retornar se mudou de estado
-			// 		}
-			// 	}
-
-			// 	state='preselect'
-			// 	origin_slot=grab.slot
-			// 	grab.position.x=origin_slot.position.x;
-			// 	grab.position.y=origin_slot.position.y;
-			// 	grab.position.z=0.4;
-			// 	grab=null
-			// 	return; // sempre retornar se mudou de estado
+					select.position.x=target_slot.position.x;
+					select.position.y=target_slot.position.y;
+					select.position.z=0.4;
+					state='preselect';
+					anim_time=0;
+					return;
+				}
+			}
 			
-			// }
-			
-			
-			// if (event.type=='paint' && state=='grab')
-			// {
-			// var vel=0.1
-			// var x= grab.position.x;
-			// 	var y= grab.position.y;
-			// 	var dirx= grab_x-x;
-			// 	var diry= grab_y-y;
-			// 	var dist=Math.sqrt(dirx*dirx+diry*diry);
-			// 	if (dist > vel)
-			// 	{
-			// 		grab.position.x=x+vel*dirx/dist;
-			// 		grab.position.y=y+vel*diry/dist;
-			// 	}
-			// 	else
-			// 	{
-			// 		grab.position.x=grab_x;
-			// 		grab.position.y=grab_y;
-			// 	}
-			// }
 		}
 		function animate() {
 			//controls.update()
