@@ -35,7 +35,14 @@
 		var mat_white=new THREE.MeshLambertMaterial( { color: 0xffffff} )
 		var mat_black=new THREE.MeshLambertMaterial( { color: 0x334411} )
 		var mat_highlight = new THREE.MeshBasicMaterial( {color:0xAAFFAA} )
+		var mat_allowed_move = new THREE.MeshBasicMaterial( {color:0x00FF00} )
 		var mat_transparent = new THREE.MeshBasicMaterial({color: 0xFFFFFF, side: THREE.DoubleSide, opacity: 0.0, transparent: true, depthWrite: false})
+		var mat_debug = new THREE.MeshLambertMaterial( { color: 0xff0000} )
+		var boardArray = new Array(7);
+		for(var i=0;i<7;i++){
+			boardArray[i] = new Array(7);
+		}
+
 		for (var i=0; i<7; i++){
 			for (var j=0; j<7; j++)
 			{
@@ -54,8 +61,10 @@
 					scene.add(slot);
 					slots.push(slot);
 					slot.piece = null; // slot vazio
+					boardArray[i][j] = slot;
 					var piece = new THREE.Mesh(piece_geo,mat_white)
 					piece.is_white=true;
+					piece.live = true;
 					piece.position.x= i;
 					piece.position.y= j;
 					piece.position.z=0.4
@@ -78,9 +87,11 @@
 					scene.add(slot);
 					slots.push(slot);
 					slot.piece = null; // slot vazio
+					boardArray[i][j] = slot;
 				}
 			}
 		}
+		console.log(boardArray);
 		/*************************************
 		Adicionar luz
 		**************************************/	
@@ -101,6 +112,7 @@
 		function verify(grab, target_slot)
 		{	
 			var peca_pulada = [];
+			console.log("aqui 3",Math.abs(grab.slot.position.y - target_slot.position.y));
 			if(Math.abs(grab.slot.position.x - target_slot.position.x)==2 && grab.slot.position.y - target_slot.position.y == 0)
 			{
 				peca_pulada.x = (grab.slot.position.x + target_slot.position.x)/2;
@@ -109,6 +121,11 @@
 					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
 					{
 						scene.remove(slots[i].piece);
+						for( var j = 0; j < pieces.length; j++){ 
+						   if (pieces[j] === slots[i].piece) {
+						     pieces.splice(j, 1); 
+						   }
+						}
 						slots[i].piece = null;
 						return true;
 					}
@@ -122,8 +139,12 @@
 				for (var i = 0; i < slots.length; i++) {
 					if(slots[i].position.x == peca_pulada.x && slots[i].position.y ==peca_pulada.y && slots[i].piece)
 					{
-
 						scene.remove(slots[i].piece);
+						for( var j = 0; j < pieces.length; j++){ 
+						   if (pieces[j] === slots[i].piece) {
+						     pieces.splice(j, 1); 
+						   }
+						}
 						slots[i].piece = null;
 						return true;
 					}
@@ -153,123 +174,174 @@
 			mouse.y= -event.clientY + height/2
 			raycaster.setFromCamera( nmouse, camera );
 		}
+
+
 		var state='preselect'
-		var grab=null;
-		var grab_x, grab_y;
-		function state_update(event) {
-			if (event.type!='paint')
-			{
-				for (i=0; i<pieces.length; i++)
-					pieces[i].material=mat_white; 
-				for (i=0; i<slots.length; i++)
-					slots[i].material=mat_transparent;
-				updateCursor();
+		var select=null;
+		var select_origin_x, select_origin_y;
+		var adjacents = [];
+
+		function getAdjacents(x,y) {
+			returnList = [];
+			if(x+2<6 && boardArray[x+2][y] && !boardArray[x+2][y].piece && boardArray[x+1][y].piece)
+				returnList.push(boardArray[x+2][y]);
+			if(x-2>=0 && boardArray[x-2][y] && !boardArray[x-2][y].piece && boardArray[x-1][y].piece)
+				returnList.push(boardArray[x-2][y]);
+			if(y+2<6 && boardArray[x][y+2] && !boardArray[x][y+2].piece && boardArray[x][y+1].piece)
+				returnList.push(boardArray[x][y+2]);
+			if(y-2<6 && boardArray[x][y-2] && !boardArray[x][y-2].piece && boardArray[x][y-1].piece)
+				returnList.push(boardArray[x][y-2]);
+			console.log("tamanho da lista",returnList.length);
+			return returnList;
+		}
+		function changeMaterial(listOfObjects, materialToApply){
+			for(var i=0;i<listOfObjects.length;i++)
+				listOfObjects[i].material = materialToApply;
+		}
+		function clear_changes(){
+			for (i=0; i<pieces.length; i++){
+				pieces[i].material=mat_white;
 			}
+			for (i=0; i<slots.length; i++){
+				slots[i].material=mat_transparent;
+			}
+			updateCursor();
+		}
+		function state_update(event) {
+			if(event.type != 'paint' && event.type != 'mousemove')
+				console.log(event.type, state);
+			if (event.type!='paint' && state!="selected")
+				clear_changes();
+			
 			if (event.type=='mousemove' && state=='preselect')
 			{
 				intersects = raycaster.intersectObjects(slots)
-				if (intersects.length) {
-					if (!intersects[0].object.piece) {
-						intersects[0].object.material=mat_highlight;
-					}
-				}
-				
-				intersects = raycaster.intersectObjects(pieces)
-				if (intersects.length) {
-					intersects[0].object.material=mat_highlight;
-					// intersects[0].object.material=mat_transparent;
+				if (intersects.length && intersects[0].object.piece) {
+					intersects[0].object.piece.material=mat_highlight;
 				}
 			}
 			
 			if (event.type=='mousedown' && state=='preselect')
 			{
-				intersects = raycaster.intersectObjects(pieces)
-				if (intersects.length) {
-					state='grab'
-					grab = intersects[0].object;
-					grab.position.z=1.0;
-					grab_x=grab.position.x;
-					grab_y=grab.position.y;
-
+				intersects = raycaster.intersectObjects(slots)
+				if (intersects.length && intersects[0].object.piece) {
+					state='selected'
+					select = intersects[0].object.piece;
+					select.material =mat_highlight;
+					select_origin_x=select.position.x;
+					select_origin_y=select.position.y;
+					console.log("selecionou a peca na posicao ",select_origin_x, select_origin_y);
+					adjacents = getAdjacents(select_origin_x, select_origin_y);
+					changeMaterial(adjacents, mat_allowed_move);
 					return; // sempre retornar se mudou de estado
 				}
 			}
-			
-			if (event.type=='mousemove' && state=='grab')
-			{
 
-			intersects = raycaster.intersectObjects(slots)
+			if (event.type=='mousedown' && state=='selected')
+			{
+				clear_changes();
+				intersects = raycaster.intersectObjects(slots);
 				if (intersects.length) 
 				{
-					target_slot=intersects[0].object;
-					if ( !target_slot.piece) 
-					{
-						target_slot.material=mat_highlight;
-						grab_x=target_slot.position.x;
-						grab_y=target_slot.position.y;
-
+					console.log("interceptou algo");
+					if(intersects[0].object.piece){
+						select = intersects[0].object.piece;
+						select.material=mat_highlight;
+						select_origin_x=select.position.x;
+						select_origin_y=select.position.y;
+						console.log("selecionou a peca na posicao 2",select_origin_x, select_origin_y);
+						adjacents = getAdjacents(select_origin_x, select_origin_y);
+						changeMaterial(adjacents, mat_allowed_move);
+						return; // sempre retornar se mudou de estado
+					} else {
+						console.log("peca morta");
 					}
-				}
-			}
-			
-			if (event.type=='mouseup' && state=='grab')
-			{
-				//console.log(event.type);
-				intersects = raycaster.intersectObjects(slots)
-				if (intersects.length) 
-				{
+					
+					console.log("interceptou no slot tambem");
 					target_slot=intersects[0].object;
-					if ( !target_slot.piece && verify(grab,target_slot)) 
+					console.log("voce quer ir para ",target_slot.position.x, target_slot.position.y);
+					if ( !target_slot.piece && verify(select,target_slot)) 
 					{
-						console.log('actual: x =',grab.slot.position.x,' y =',grab.slot.position.y);
-						origin_slot=grab.slot
+						console.log('actual: x =',select.slot.position.x,' y =',select.slot.position.y);
+						origin_slot = select.slot;
 						origin_slot.piece=null;
-						target_slot.piece=grab;
-						grab.slot=target_slot;
+						select.slot=target_slot;
+						target_slot.piece=select;
 						console.log('target: x =',target_slot.position.x,' y =',target_slot.position.y);
 
-						grab.position.x=target_slot.position.x;
-						grab.position.y=target_slot.position.y;
-						grab.position.z=0.4;
-						state='preselect'
+						select.position.x=target_slot.position.x;
+						select.position.y=target_slot.position.y;
+						select.position.z=0.4;
+						state='preselect';
 						anim_time=0;
+					
+						return; // sempre retornar se mudou de estado
+					}					
+				}
+
+				state = 'preselect';
+				clear_changes();
+				return; // sempre retornar se mudou de estado
+			}
+			
+			// if (event.type=='mouseup' && state=='grab')
+			// {
+			// 	//console.log(event.type);
+			// 	intersects = raycaster.intersectObjects(slots)
+			// 	if (intersects.length) 
+			// 	{
+			// 		target_slot=intersects[0].object;
+			// 		if ( !target_slot.piece && verify(grab,target_slot)) 
+			// 		{
+			// 			console.log('actual: x =',grab.slot.position.x,' y =',grab.slot.position.y);
+			// 			origin_slot=grab.slot
+			// 			origin_slot.piece=null;
+			// 			target_slot.piece=grab;
+			// 			grab.slot=target_slot;
+			// 			console.log('target: x =',target_slot.position.x,' y =',target_slot.position.y);
+
+			// 			grab.position.x=target_slot.position.x;
+			// 			grab.position.y=target_slot.position.y;
+			// 			grab.position.z=0.4;
+			// 			state='preselect';
+			// 			anim_time=0;
 
 					
-						grab=null;
-						return; // sempre retornar se mudou de estado
-					}
-				}
+			// 			grab=null;
+			// 			return; // sempre retornar se mudou de estado
+			// 		}
+			// 	}
 
-				state='preselect'
-				origin_slot=grab.slot
-				grab.position.x=origin_slot.position.x;
-				grab.position.y=origin_slot.position.y;
-				grab.position.z=0.4;
-				grab=null
-				return; // sempre retornar se mudou de estado
+			// 	state='preselect'
+			// 	origin_slot=grab.slot
+			// 	grab.position.x=origin_slot.position.x;
+			// 	grab.position.y=origin_slot.position.y;
+			// 	grab.position.z=0.4;
+			// 	grab=null
+			// 	return; // sempre retornar se mudou de estado
 			
-			}
+			// }
 			
 			
-			if (event.type=='paint' && state=='grab')
-			{
-			var vel=0.1
-			var x= grab.position.x;
-				var y= grab.position.y;
-				var dirx= grab_x-x;
-				var diry= grab_y-y;
-				var dist=Math.sqrt(dirx*dirx+diry*diry);
-				if (dist > vel)
-				{
-					grab.position.x=x+vel*dirx/dist;
-					grab.position.y=y+vel*diry/dist;
-				}
-				else
-				{
-					grab.position.x=grab_x;
-					grab.position.y=grab_y;
-				}
-			}
+			// if (event.type=='paint' && state=='grab')
+			// {
+			// var vel=0.1
+			// var x= grab.position.x;
+			// 	var y= grab.position.y;
+			// 	var dirx= grab_x-x;
+			// 	var diry= grab_y-y;
+			// 	var dist=Math.sqrt(dirx*dirx+diry*diry);
+			// 	if (dist > vel)
+			// 	{
+			// 		grab.position.x=x+vel*dirx/dist;
+			// 		grab.position.y=y+vel*diry/dist;
+			// 	}
+			// 	else
+			// 	{
+			// 		grab.position.x=grab_x;
+			// 		grab.position.y=grab_y;
+			// 	}
+			// }
 		}
 		function animate() {
 			//controls.update()
