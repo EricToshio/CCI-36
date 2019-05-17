@@ -60,27 +60,6 @@
 				    ind += 1.0;
 				}
 
-				//ind = 0.0;
-			    //for(float i = 0.0; i < 1.0; i += 0.02) {
-			    //	if(st < i + 0.00615 && st > i - 0.00615) {
-			    //		float f = texture2D( tAudioData, vec2( ind/64.0, 0.0 ) ).r;
-			    //		if (h > f + 0.03) {
-			    //			color = vec3(1.0,h,1.0);
-			    //		}
-				//    }
-				//    ind += 1.0;
-				//}
-
-			    // bottom-left
-			    //vec2 bl = step(vec2(0.1),st);
-			    //float pct = bl.x * bl.y;
-
-			    // top-right
-			    // vec2 tr = step(vec2(0.1),1.0-st);
-			    // pct *= tr.x * tr.y;
-
-			    //color = vec3(pct);
-
 			    gl_FragColor = vec4(color,1.0);
 
 			}
