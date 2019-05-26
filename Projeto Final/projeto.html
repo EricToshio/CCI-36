@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Projeto CCI36</title>
+		<script type="text/javascript" src="js/three.min.js" ></script>
+
+		<script type="text/javascript" src="js/MTLLoader.js" ></script>
+		<script type="text/javascript" src="js/OBJLoader.js" ></script>
+
+
+	</head>
+
+	<body style="text-align:center;">
+		<span style="position:absolute;top:0px;left:0px;">
+			WASD to move.<br/>Arrow keys to turn.
+		</span>
+		<script>
+		var scene, camera, renderer, mesh, clock;
+		var meshFloor, ambientLight, light;
+
+		var crate, crateTexture, crateNormalMap, crateBumpMap;
+
+		var keyboard = {};
+		var player = { height:1.8, speed:0.2, turnSpeed:Math.PI*0.02, canShoot:0 };
+		var USE_WIREFRAME = false;
+
+		var loadingScreen = {
+			scene: new THREE.Scene(),
+			camera: new THREE.PerspectiveCamera(90, 1280/720, 0.1, 100),
+			box: new THREE.Mesh(
+				new THREE.BoxGeometry(0.5,0.5,0.5),
+				new THREE.MeshBasicMaterial({ color:0x4444ff })
+			)
+		};
+		var loadingManager = null;
+		var RESOURCES_LOADED = false;
+
+		// modelos
+		var models = {
+			tent: {
+				obj:"models/Tent_Poles_01.obj",
+				mtl:"models/Tent_Poles_01.mtl",
+				mesh: null
+			},
+			campfire: {
+				obj:"models/Campfire_01.obj",
+				mtl:"models/Campfire_01.mtl",
+				mesh: null
+			},
+			pirateship: {
+				obj:"models/Pirateship.obj",
+				mtl:"models/Pirateship.mtl",
+				mesh: null
+			},
+			uzi: {
+				obj:"models/uziGold.obj",
+				mtl:"models/uziGold.mtl",
+				mesh: null,
+				castShadow:false
+			}
+		};
+
+		// Meshes
+		var meshes = {};
+
+		// Vetor das balas
+		var bullets = [];
+
+		function init(){
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
+			clock = new THREE.Clock();
+
+			loadingScreen.box.position.set(0,0,5);
+			loadingScreen.camera.lookAt(loadingScreen.box.position);
+			loadingScreen.scene.add(loadingScreen.box);
+
+			loadingManager = new THREE.LoadingManager();
+			loadingManager.onProgress = function(item, loaded, total){
+				console.log(item, loaded, total);
+			};
+			loadingManager.onLoad = function(){
+				console.log("loaded all resources");
+				RESOURCES_LOADED = true;
+				onResourcesLoaded();
+			};
+
+			//  GROUND
+			var gt = new THREE.TextureLoader().load( "models/grasslight-big.jpg" );
+			var gg = new THREE.PlaneBufferGeometry( 100, 100 );
+			var gm = new THREE.MeshPhongMaterial( { color: 0xffffff, map: gt } );
+			var ground = new THREE.Mesh( gg, gm );
+			ground.rotation.x = - Math.PI / 2;
+			ground.material.map.repeat.set( 8, 8 );
+			ground.material.map.wrapS = ground.material.map.wrapT = THREE.RepeatWrapping;
+			ground.receiveShadow = true;
+			scene.add( ground );
+
+			ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+			scene.add(ambientLight);
+
+			light = new THREE.PointLight(0xffffff, 0.8, 18);
+			light.position.set(-3,6,-3);
+			light.castShadow = true;
+			light.shadow.camera.near = 0.1;
+			light.shadow.camera.far = 25;
+			scene.add(light);
+
+
+
+			var textureLoader = new THREE.TextureLoader(loadingManager);
+			crateTexture = textureLoader.load("crate0/crate0_diffuse.jpg");
+			crateBumpMap = textureLoader.load("crate0/crate0_bump.jpg");
+			crateNormalMap = textureLoader.load("crate0/crate0_normal.jpg");
+
+			/* CAIXA DE MADEIRA */
+			crate = new THREE.Mesh(
+				new THREE.BoxGeometry(3,3,3),
+				new THREE.MeshPhongMaterial({
+					color:0xffffff,
+					map:crateTexture,
+					bumpMap:crateBumpMap,
+					normalMap:crateNormalMap
+				})
+			);
+			scene.add(crate);
+			crate.position.set(2.5, 3/2, 2.5);
+			crate.receiveShadow = true;
+			crate.castShadow = true;
+
+			for( var _key in models ){
+				(function(key){
+
+					var mtlLoader = new THREE.MTLLoader(loadingManager);
+					mtlLoader.load(models[key].mtl, function(materials){
+						materials.preload();
+
+						var objLoader = new THREE.OBJLoader(loadingManager);
+
+						objLoader.setMaterials(materials);
+						objLoader.load(models[key].obj, function(mesh){
+
+							mesh.traverse(function(node){
+								if( node instanceof THREE.Mesh ){
+									if('castShadow' in models[key])
+										node.castShadow = models[key].castShadow;
+									else
+										node.castShadow = true;
+
+									if('receiveShadow' in models[key])
+										node.receiveShadow = models[key].receiveShadow;
+									else
+										node.receiveShadow = true;
+								}
+							});
+							models[key].mesh = mesh;
+
+						});
+					});
+
+				})(_key);
+			}
+
+
+			camera.position.set(0, player.height, -5);
+			camera.lookAt(new THREE.Vector3(0,player.height,0));
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(1280, 720);
+
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.BasicShadowMap;
+
+			document.body.appendChild(renderer.domElement);
+
+			animate();
+		}
+
+
+		function onResourcesLoaded(){
+
+			//Clonar os modelos criados
+			meshes["tent1"] = models.tent.mesh.clone();
+			meshes["tent2"] = models.tent.mesh.clone();
+			meshes["campfire1"] = models.campfire.mesh.clone();
+			meshes["campfire2"] = models.campfire.mesh.clone();
+			meshes["box"] = crate.clone()
+
+
+			// Posicionar cada modelo na cena
+			meshes["tent1"].position.set(-5, 0, 4);
+			scene.add(meshes["tent1"]);
+
+			meshes["tent2"].position.set(-8, 0, 4);
+			scene.add(meshes["tent2"]);
+
+			meshes["campfire1"].position.set(-5, 0, 1);
+			meshes["campfire2"].position.set(-8, 0, 1);
+
+			scene.add(meshes["campfire1"]);
+			scene.add(meshes["campfire2"]);
+
+			meshes["box"].position.set(-5, 1.5, -10);
+			scene.add(meshes["box"]);
+
+
+			// Arma do jogador
+			meshes["playerweapon"] = models.uzi.mesh.clone();
+			meshes["playerweapon"].position.set(0,2,0);
+			meshes["playerweapon"].scale.set(10,10,10);
+			scene.add(meshes["playerweapon"]);
+		}
+
+		function animate(){
+
+			if( RESOURCES_LOADED == false ){
+				requestAnimationFrame(animate);
+
+
+				loadingScreen.box.position.x -= 0.05;
+				if( loadingScreen.box.position.x < -10 ) loadingScreen.box.position.x = 10;
+				loadingScreen.box.position.y = Math.sin(loadingScreen.box.position.x);
+
+				renderer.render(loadingScreen.scene, loadingScreen.camera);
+				return;
+			}
+
+			requestAnimationFrame(animate);
+
+			var time = Date.now() * 0.0005;
+			var delta = clock.getDelta();
+
+			// atualiza as posicoes das balas e as remove quando apropriado
+			for(var index=0; index<bullets.length; index+=1){
+				if( bullets[index] === undefined ) continue;
+				if( bullets[index].alive == false ){
+					bullets.splice(index,1);
+					continue;
+				}
+
+				bullets[index].position.add(bullets[index].velocity);
+			}
+
+			if(keyboard[87]){ //tecla W
+				camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
+				camera.position.z -= -Math.cos(camera.rotation.y) * player.speed;
+			}
+			if(keyboard[83]){ // tecla S
+				camera.position.x += Math.sin(camera.rotation.y) * player.speed;
+				camera.position.z += -Math.cos(camera.rotation.y) * player.speed;
+			}
+			if(keyboard[65]){ // tecla A
+				camera.position.x += Math.sin(camera.rotation.y + Math.PI/2) * player.speed;
+				camera.position.z += -Math.cos(camera.rotation.y + Math.PI/2) * player.speed;
+			}
+			if(keyboard[68]){ // tecla D
+				camera.position.x += Math.sin(camera.rotation.y - Math.PI/2) * player.speed;
+				camera.position.z += -Math.cos(camera.rotation.y - Math.PI/2) * player.speed;
+			}
+
+			if(keyboard[37]){ // seta para esquerda
+				camera.rotation.y -= player.turnSpeed;
+			}
+			if(keyboard[39]){ // seta para direita
+				camera.rotation.y += player.turnSpeed;
+			}
+
+			// atirar uma balas - espaco
+			if(keyboard[32] && player.canShoot <= 0){ // spacebar key
+				// cria as balas
+				var bullet = new THREE.Mesh(
+					new THREE.SphereGeometry(0.05,8,8),
+					new THREE.MeshBasicMaterial({color:0xffffff})
+				);
+
+
+				// posicao da bala
+				bullet.position.set(
+					meshes["playerweapon"].position.x,
+					meshes["playerweapon"].position.y + 0.15,
+					meshes["playerweapon"].position.z
+				);
+
+				// set the velocity of the bullet
+				bullet.velocity = new THREE.Vector3(
+					-Math.sin(camera.rotation.y),
+					0,
+					Math.cos(camera.rotation.y)
+				);
+
+				// after 1000ms, set alive to false and remove from scene
+				// setting alive to false flags our update code to remove
+				// the bullet from the bullets array
+				bullet.alive = true;
+				setTimeout(function(){
+					bullet.alive = false;
+					scene.remove(bullet);
+				}, 1000);
+
+				// add to scene, array, and set the delay to 10 frames
+				bullets.push(bullet);
+				scene.add(bullet);
+				player.canShoot = 10;
+			}
+			if(player.canShoot > 0) player.canShoot -= 1;
+
+			// position the gun in front of the camera
+			meshes["playerweapon"].position.set(
+				camera.position.x - Math.sin(camera.rotation.y + Math.PI/6) * 0.75,
+				camera.position.y - 0.5 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
+				camera.position.z + Math.cos(camera.rotation.y + Math.PI/6) * 0.75
+			);
+			meshes["playerweapon"].rotation.set(
+				camera.rotation.x,
+				camera.rotation.y - Math.PI,
+				camera.rotation.z
+			);
+
+			renderer.render(scene, camera);
+		}
+
+		function keyDown(event){
+			keyboard[event.keyCode] = true;
+		}
+
+		function keyUp(event){
+			keyboard[event.keyCode] = false;
+		}
+
+		window.addEventListener('keydown', keyDown);
+		window.addEventListener('keyup', keyUp);
+
+		window.onload = init;
+
+
+		</script>
+	</body>
+</html>
