@@ -6,29 +6,54 @@
 		<script type="text/javascript" src="js/MTLLoader.js" ></script>
 		<script type="text/javascript" src="js/OBJLoader.js" ></script>
 
-
+		<!--Cronometro -->
 		<link rel="stylesheet" href="js/flipclock.css">
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="js/flipclock.js"></script>
 	</head>
 
 	<body style="text-align:center;">
+
 		<!-- CRONOMETRO -->
+
+		<div class="clock1" style="margin:2em;"></div>
 		<div class="clock" style="margin:2em;"></div>
+		<button type="button" class="increment" style="margin: 25px; font-size: 20px; padding: 15px;">+1</button>
+		<div class="message" style= "font-size: 100px"></div>
 
 		<script type="text/javascript">
-			var clock;
+			var clock, clock1;
 
 			$(document).ready(function() {
 
-				// Instantiate a counter
-				clock = new FlipClock($('.clock'), 15, {
+				clock1 = new FlipClock($('.clock1'), {
 					clockFace: 'Counter',
-					autoStart: true,
-					countdown: true
+
 				});
 
+				// Instantiate a counter
+				clock = $('.clock').FlipClock(5, {
+			        clockFace: 'MinuteCounter',
+			        countdown: true,
+			        callbacks: {
+			        	stop: function() {
+			        		$('.message').html('GAME OVER!');
+			        	}
+			        }
+			    });
+
+				$('.increment').click(function() {
+
+					clock1.increment();
+
+				});
+
+
 			});
+
+
+		<!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+
 		</script>
 
 		<span style="position:absolute;top:0px;left:0px;">
@@ -89,7 +114,7 @@
 		function init(){
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0xffffff );
-			scene.fog = new THREE.FogExp2( 0xffffff, 0.045 );
+			scene.fog = new THREE.FogExp2( 0xffffff, 0.065 );
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
 			clock = new THREE.Clock();
 
