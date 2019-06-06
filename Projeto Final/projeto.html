@@ -100,7 +100,8 @@
 		var bullets = [];
 		var count = 0;
 
-		var colliders   = []
+		var colliders = []
+		var helpers = []
 
 		var collisionEnter = false;
 		var collisionExit = false;
@@ -150,8 +151,6 @@
 			light.shadow.camera.near = 0.1;
 			light.shadow.camera.far = 25;
 			scene.add(light);
-
-
 
 			var textureLoader = new THREE.TextureLoader(loadingManager);
 			crateTexture = textureLoader.load("crate0/crate0_diffuse.jpg");
@@ -243,10 +242,8 @@
 		function addCollider(mesh) {
 			var box3 = new THREE.Box3().setFromObject(mesh);
 			var collider = new THREEx.ColliderBox3(mesh, box3)
-			colliders.push(collider)
-			onRenderFcts.push(function(){
-				collider.update()
-			})
+			add_collider_to_list(collider);
+			mesh.collider = collider;
 
 			if(mesh.name == "arma") {
 				collider.addEventListener('contactEnter', function(otherCollider){
@@ -262,7 +259,7 @@
 					otherCollider.helper.material.color.set('green');
 					collisionExit = true;
 				})
-			} else {
+			} else if (mesh.name == "bullet"){
 				collider.addEventListener('contactEnter', function(otherCollider){
 					console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
 					helper.material.color.set('red');
@@ -278,13 +275,47 @@
 			
 			var helper	= new THREEx.ColliderHelper(collider)
 			helper.material.color.set('green')
+			
 			scene.add(helper)
-			onRenderFcts.push(function(){
-				helper.update()
-			})
+			add_helper_to_list(helper);
 			collider.helper = helper;
+			mesh.helper = helper;
 
 			return [collider,helper];
+		}
+
+		function add_collider_to_list(collider) {
+			colliders.push(collider);
+		}
+
+		function remove_collider_from_list(collider) {
+			for(var i=0;i<colliders.length; i++) {
+				if( colliders[i] == collider ){
+					colliders.splice(i,1);
+					break;
+				}
+			}
+		}
+
+		function add_helper_to_list(helper) {
+			helpers.push(helper);
+		}
+
+		function remove_helper_from_list(helper) {
+			scene.remove(helper);
+			for(var i=0;i<helpers.length; i++) {
+				if( helpers[i] == helper ){
+					helpers.splice(i,1);
+					break;
+				}
+			}
+		}
+
+		function update_lists() {
+			for(var i=0;i<colliders.length;i++)
+				colliders[i].update()
+			for(var i=0;i<helpers.length;i++)
+				helpers[i].update()
 		}
 
 
@@ -366,8 +397,9 @@
 			scene.add(meshes["playerweapon"]);
 
 			onRenderFcts.forEach(function(onRenderFct){
-				onRenderFct(1/1000, 1/1000)
+				onRenderFct()
 			});
+			update_lists();
 
 		}
 
@@ -395,7 +427,10 @@
 			for(var index=0; index<bullets.length; index+=1){
 				if( bullets[index] === undefined ) continue;
 				if( bullets[index].alive == false ){
+					remove_collider_from_list(bullets[index].collider);
+					remove_helper_from_list(bullets[index].helper);
 					bullets.splice(index,1);
+
 					continue;
 				}
 
@@ -436,8 +471,9 @@
 			var change_position = 1 - Math.sin(count*Math.PI/2000);
 			moveWeapon(time, change_position);
 			onRenderFcts.forEach(function(onRenderFct){
-				onRenderFct(1/1000, 1/1000)
+				onRenderFct()
 			});
+			update_lists();
 
 			console.log(collisionEnter, collisionExit);
 
@@ -517,7 +553,8 @@
 			moveWeapon(time,change_position);
 			onRenderFcts.forEach(function(onRenderFct){
 				onRenderFct(1/1000, 1/1000)
-			})
+			});
+			update_lists();
 
 			renderer.render(scene, camera);
 		}
