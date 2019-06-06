@@ -6,31 +6,56 @@
 		<script type="text/javascript" src="js/MTLLoader.js" ></script>
 		<script type="text/javascript" src="js/OBJLoader.js" ></script>
 		<script src='js/threex/examples/../threex.collider.js'></script>
-<script src='js/threex/examples/../threex.collidersystem.js'></script>
-<script src='js/threex/examples/../threex.colliderhelper.js'></script>
+		<script src='js/threex/examples/../threex.collidersystem.js'></script>
+		<script src='js/threex/examples/../threex.colliderhelper.js'></script>
 
 		<link rel="stylesheet" href="js/flipclock.css">
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="js/jquery.min.js"></script>
 		<script src="js/flipclock.js"></script>
 	</head>
 
 	<body style="text-align:center;">
+
 		<!-- CRONOMETRO -->
+
+		<div class="clock1" style="margin:2em;"></div>
 		<div class="clock" style="margin:2em;"></div>
+		<button type="button" class="increment" style="margin: 25px; font-size: 20px; padding: 15px;">+1</button>
+		<div class="message" style= "font-size: 100px"></div>
 
 		<script type="text/javascript">
-			var clock;
+			var clock, clock1;
 
 			$(document).ready(function() {
 
-				// Instantiate a counter
-				clock = new FlipClock($('.clock'), 15, {
+				clock1 = new FlipClock($('.clock1'), {
 					clockFace: 'Counter',
-					autoStart: true,
-					countdown: true
+
 				});
 
+				// Instantiate a counter
+				clock = $('.clock').FlipClock(5, {
+			        clockFace: 'MinuteCounter',
+			        countdown: true,
+			        callbacks: {
+			        	stop: function() {
+			        		$('.message').html('GAME OVER!');
+			        	}
+			        }
+			    });
+
+				$('.increment').click(function() {
+
+					clock1.increment();
+
+				});
+
+
 			});
+
+
+		<!-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
+
 		</script>
 
 		<script>
@@ -42,7 +67,7 @@
 		var colliderSystem  = new THREEx.ColliderSystem()
 		var onRenderFcts= [];
 		onRenderFcts.push(function(){
-			colliderSystem.computeAndNotify(colliders)	
+			colliderSystem.computeAndNotify(colliders)
 		});
 
 		// detectPlayerCollision =
@@ -111,7 +136,7 @@
 		function init(){
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0xffffff );
-			scene.fog = new THREE.FogExp2( 0xffffff, 0.045 );
+			scene.fog = new THREE.FogExp2( 0xffffff, 0.065 );
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
 			clock = new THREE.Clock();
 
@@ -272,7 +297,7 @@
 					otherCollider.helper.material.color.set('green');
 				})
 			}
-			
+
 			var helper	= new THREEx.ColliderHelper(collider)
 			helper.material.color.set('green')
 			
@@ -347,7 +372,7 @@
 			meshes["campfire2"].name = "campfire2";
 			// meshes["campfire2"].type = "solid";
 			addCollider(meshes["campfire2"]);
-			
+
 			meshes["box"] = crate.clone();
 			meshes["box"].name = "box";
 			meshes["box"].type = "solid";
@@ -356,8 +381,8 @@
 
 			// Adicionar bears
 			generate_bears();
-			
-			
+
+
 			scene.add(meshes["bears"][0]);
 
 			meshes["tent1"].position.set(-8, 0, 4);
@@ -388,7 +413,7 @@
 			addCollider(meshes["playerweapon"]);
 			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
 			var i = 0;
-			// Pinta arma de preto	
+			// Pinta arma de preto
 			for (i = meshes["playerweapon"].children.length - 1; i >= 0; i--) {
 				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
 			}
@@ -437,7 +462,7 @@
 				bullets[index].position.add(bullets[index].velocity);
 			}
 
-			
+
 
 			var prevPosition = [];
 			prevPosition.x = camera.position.x;
@@ -544,12 +569,12 @@
 			}else{
 				if (count >= 1){
 					count = count - 50
-				}	
+				}
 			}
 			if(player.canShoot > 0) player.canShoot -= 1;
 
 
-				
+
 			moveWeapon(time,change_position);
 			onRenderFcts.forEach(function(onRenderFct){
 				onRenderFct(1/1000, 1/1000)
@@ -563,7 +588,7 @@
 			camera.position.set(
 				prevPosition.x,
 				prevPosition.y,
-				prevPosition.z 
+				prevPosition.z
 			);
 		}
 
