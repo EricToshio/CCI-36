@@ -5,7 +5,9 @@
 		<script type="text/javascript" src="js/three.js" ></script>
 		<script type="text/javascript" src="js/MTLLoader.js" ></script>
 		<script type="text/javascript" src="js/OBJLoader.js" ></script>
-
+		<script src='js/threex/examples/../threex.collider.js'></script>
+<script src='js/threex/examples/../threex.collidersystem.js'></script>
+<script src='js/threex/examples/../threex.colliderhelper.js'></script>
 
 		<link rel="stylesheet" href="js/flipclock.css">
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -37,6 +39,14 @@
 
 		var crate, crateTexture, crateNormalMap, crateBumpMap;
 
+		var colliderSystem  = new THREEx.ColliderSystem()
+		var onRenderFcts= [];
+		onRenderFcts.push(function(){
+			colliderSystem.computeAndNotify(colliders)	
+		});
+
+		// detectPlayerCollision =
+
 		var keyboard = {};
 		var player = { height:1.8, speed:0.2, turnSpeed:Math.PI*0.02, canShoot:0 };
 		var USE_WIREFRAME = false;
@@ -46,7 +56,7 @@
 			camera: new THREE.PerspectiveCamera(90, 1280/720, 0.1, 100),
 			box: new THREE.Mesh(
 				new THREE.BoxGeometry(0.5,0.5,0.5),
-				new THREE.MeshBasicMaterial({ color:0x4444ff })
+				new THREE.MeshBasicMaterial({ color:0xffffff })
 			)
 		};
 		var loadingManager = null;
@@ -90,6 +100,13 @@
 		var bullets = [];
 		var count = 0;
 
+		var colliders   = []
+
+		var collisionEnter = false;
+		var collisionExit = false;
+
+
+
 		function init(){
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0xffffff );
@@ -122,6 +139,8 @@
 			ground.receiveShadow = true;
 			scene.add( ground );
 
+
+			// LIGHT
 			ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 			scene.add(ambientLight);
 
@@ -149,11 +168,16 @@
 					normalMap:crateNormalMap
 				})
 			);
+			crate.name = "crate1";
+			addCollider(crate);
+
+
 			scene.add(crate);
 			crate.position.set(2.5, 3/2, 2.5);
 			crate.receiveShadow = true;
 			crate.castShadow = true;
 
+			// só aceita
 			for( var _key in models ){
 				(function(key){
 
@@ -204,6 +228,7 @@
 			animate();
 		}
 
+
 		function generate_bears() {
 			for (var i = 0; i < 10; i++) {
 				meshes["bears"].push( meshes["bear_model"].clone())
@@ -212,19 +237,90 @@
 				scene.add(meshes["bears"][i]);
 			}
 		}
+		var playerCollided = false;
+		var lastSafePosition = {x: 0, y: 0, z: 0};
+
+		function addCollider(mesh) {
+			var box3 = new THREE.Box3().setFromObject(mesh);
+			var collider = new THREEx.ColliderBox3(mesh, box3)
+			colliders.push(collider)
+			onRenderFcts.push(function(){
+				collider.update()
+			})
+
+			if(mesh.name == "arma") {
+				collider.addEventListener('contactEnter', function(otherCollider){
+					console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('red');
+					otherCollider.helper.material.color.set('red');
+					collisionEnter = true;
+
+				})
+				collider.addEventListener('contactExit', function(otherCollider){
+					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('green');
+					otherCollider.helper.material.color.set('green');
+					collisionExit = true;
+				})
+			} else {
+				collider.addEventListener('contactEnter', function(otherCollider){
+					console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('red');
+					otherCollider.helper.material.color.set('red');
+
+				})
+				collider.addEventListener('contactExit', function(otherCollider){
+					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('green');
+					otherCollider.helper.material.color.set('green');
+				})
+			}
+			
+			var helper	= new THREEx.ColliderHelper(collider)
+			helper.material.color.set('green')
+			scene.add(helper)
+			onRenderFcts.push(function(){
+				helper.update()
+			})
+			collider.helper = helper;
+
+			return [collider,helper];
+		}
 
 
 		function onResourcesLoaded(){
 
 			//Clonar os modelos criados
+
 			meshes["bear_model"] = models.black_bear.mesh.clone();
 			meshes["bear_model"].children[0].material.color.setHex(0x8B4513);
 			meshes["bears"] = []
-			meshes["tent"] = models.tent.mesh.clone();
-			meshes["campfire1"] = models.campfire.mesh.clone();
-			meshes["campfire2"] = models.campfire.mesh.clone();
-			meshes["box"] = crate.clone()
 
+			meshes["tent1"] = models.tent.mesh.clone();
+			meshes["tent1"].name = "tent1";
+			meshes["tent1"].type = "solid";
+			addCollider(meshes["tent1"]);
+
+			meshes["tent2"] = models.tent.mesh.clone();
+			meshes["tent2"].name = "tent2";
+			meshes["tent2"].type = "solid";
+			addCollider(meshes["tent2"]);
+
+
+			meshes["campfire1"] = models.campfire.mesh.clone();
+			meshes["campfire1"].name = "campfire1";
+			meshes["campfire1"].type = "solid";
+			addCollider(meshes["campfire1"]);
+
+			meshes["campfire2"] = models.campfire.mesh.clone();
+			meshes["campfire2"].name = "campfire2";
+			// meshes["campfire2"].type = "solid";
+			addCollider(meshes["campfire2"]);
+			
+			meshes["box"] = crate.clone();
+			meshes["box"].name = "box";
+			meshes["box"].type = "solid";
+			addCollider(meshes["box"]);
 
 
 			// Adicionar bears
@@ -233,8 +329,10 @@
 			
 			scene.add(meshes["bears"][0]);
 
-			meshes["tent"].position.set(-8, 0, 4);
-			scene.add(meshes["tent"]);
+			meshes["tent1"].position.set(-8, 0, 4);
+			scene.add(meshes["tent1"]);
+			meshes["tent2"].position.set(-5, 0, 4);
+			scene.add(meshes["tent2"]);
 
 			meshes["campfire1"].position.set(-5, 0, 1);
 			meshes["campfire2"].position.set(-8, 0, 1);
@@ -248,7 +346,15 @@
 
 			// Arma do jogador
 			meshes["playerweapon"] = models.m4a1.mesh.clone();
-			meshes["playerweapon"].position.set(0,0,0);
+			// meshes["playerweapon"].position.set(0,0,0);
+			meshes["playerweapon"].position.set(
+				camera.position.x,
+				camera.position.y,
+				camera.position.z
+			);
+			meshes["playerweapon"].name = "arma";
+			meshes["playerweapon"].type = "solid";
+			addCollider(meshes["playerweapon"]);
 			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
 			var i = 0;
 			// Pinta arma de preto	
@@ -256,7 +362,13 @@
 				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
 			}
 
+
 			scene.add(meshes["playerweapon"]);
+
+			onRenderFcts.forEach(function(onRenderFct){
+				onRenderFct(1/1000, 1/1000)
+			});
+
 		}
 
 		function animate(){
@@ -290,6 +402,13 @@
 				bullets[index].position.add(bullets[index].velocity);
 			}
 
+			
+
+			var prevPosition = [];
+			prevPosition.x = camera.position.x;
+			prevPosition.y = camera.position.y;
+			prevPosition.z = camera.position.z;
+
 			if(keyboard[87]){ //tecla W
 				camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
 				camera.position.z -= -Math.cos(camera.rotation.y) * player.speed;
@@ -314,6 +433,27 @@
 				camera.rotation.y += player.turnSpeed;
 			}
 
+			var change_position = 1 - Math.sin(count*Math.PI/2000);
+			moveWeapon(time, change_position);
+			onRenderFcts.forEach(function(onRenderFct){
+				onRenderFct(1/1000, 1/1000)
+			});
+
+			console.log(collisionEnter, collisionExit);
+
+			if (!collisionExit && !collisionEnter) {
+				collisionEnter = false;
+				collisionExit = false;
+			} else if(collisionEnter && !collisionExit) {
+				undoMoveWeapon(prevPosition);
+			} else if(collisionEnter && collisionExit) {
+				collisionEnter = false;
+				collisionExit = false;
+			} else if(!collisionEnter && collisionExit) {
+				collisionEnter = false;
+				collisionExit = false;
+			}
+
 
 			// atirar uma balas - espaco
 			if(keyboard[32] && player.canShoot <= 0){ // spacebar key
@@ -322,6 +462,10 @@
 					new THREE.SphereGeometry(0.05,8,8),
 					new THREE.MeshBasicMaterial({color:0xffffff})
 				);
+				bullet.name = "bullet";
+				var a = addCollider(bullet);
+				bullet.collider = a[0];
+				bullet.helper = a[1];
 
 
 				// posicao da bala
@@ -369,8 +513,25 @@
 			if(player.canShoot > 0) player.canShoot -= 1;
 
 
-			var change_position = 1 - Math.sin(count*Math.PI/2000)
 				
+			moveWeapon(time,change_position);
+			onRenderFcts.forEach(function(onRenderFct){
+				onRenderFct(1/1000, 1/1000)
+			})
+
+			renderer.render(scene, camera);
+		}
+
+		function undoMoveWeapon(prevPosition) {
+			camera.position.set(
+				prevPosition.x,
+				prevPosition.y,
+				prevPosition.z 
+			);
+		}
+
+		function moveWeapon(time, change_position) {
+			// position the gun in front of the camera
 			meshes["playerweapon"].position.set(
 			camera.position.x - Math.sin(camera.rotation.y + Math.PI/3) * 0.4 * change_position  ,
 			camera.position.y - 0.47 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
@@ -379,15 +540,12 @@
 			light.position.set(camera.position.x- Math.sin(camera.rotation.y + Math.PI/3)*3,6,camera.position.z- Math.cos(camera.rotation.y + Math.PI/3) * 3);
 			light.rotation.set(camera.rotation.x,camera.rotation.y+Math.PI,camera.rotation.z);
 
-
 			// position the gun in front of the camera
 			meshes["playerweapon"].rotation.set(
 				camera.rotation.x,
 				camera.rotation.y,
 				camera.rotation.z
 			);
-
-			renderer.render(scene, camera);
 		}
 
 		function keyDown(event){
