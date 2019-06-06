@@ -6,7 +6,9 @@
 
 		<script type="text/javascript" src="js/MTLLoader.js" ></script>
 		<script type="text/javascript" src="js/OBJLoader.js" ></script>
-
+		<script src='js/threex/examples/../threex.collider.js'></script>
+<script src='js/threex/examples/../threex.collidersystem.js'></script>
+<script src='js/threex/examples/../threex.colliderhelper.js'></script>
 
 	</head>
 
@@ -20,6 +22,8 @@
 
 		var crate, crateTexture, crateNormalMap, crateBumpMap;
 
+		var colliderSystem  = new THREEx.ColliderSystem()
+
 		var keyboard = {};
 		var player = { height:1.8, speed:0.2, turnSpeed:Math.PI*0.02, canShoot:0 };
 		var USE_WIREFRAME = false;
@@ -29,7 +33,7 @@
 			camera: new THREE.PerspectiveCamera(90, 1280/720, 0.1, 100),
 			box: new THREE.Mesh(
 				new THREE.BoxGeometry(0.5,0.5,0.5),
-				new THREE.MeshBasicMaterial({ color:0x4444ff })
+				new THREE.MeshBasicMaterial({ color:0xffffff })
 			)
 		};
 		var loadingManager = null;
@@ -66,6 +70,8 @@
 		// Vetor das balas
 		var bullets = [];
 
+		var colliders   = []
+
 		function init(){
 			scene = new THREE.Scene();
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
@@ -96,6 +102,8 @@
 			ground.receiveShadow = true;
 			scene.add( ground );
 
+
+			// LIGHT
 			ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 			scene.add(ambientLight);
 
@@ -123,11 +131,28 @@
 					normalMap:crateNormalMap
 				})
 			);
+			
+
+
+			// compute collider shape from mesh.geometry.vertices
+			var box3 = new THREE.Box3()
+			box3.setFromPoints( crate.geometry.vertices );
+			// init collider
+			var collider	= new THREEx.ColliderBox3(crate, box3);
+			// colliders.push(collider);
+			// colliders.push(collider)
+			// colliderSystem.add(collider)
+			// onRenderFcts.push(function(delta){
+			// 	collider.update()
+			// })
+
+
 			scene.add(crate);
 			crate.position.set(2.5, 3/2, 2.5);
 			crate.receiveShadow = true;
 			crate.castShadow = true;
 
+			// só aceita
 			for( var _key in models ){
 				(function(key){
 
