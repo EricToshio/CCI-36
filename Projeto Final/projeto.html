@@ -11,9 +11,6 @@
 	</head>
 
 	<body style="text-align:center;">
-		<span style="position:absolute;top:0px;left:0px;">
-			WASD to move.<br/>Arrow keys to turn.
-		</span>
 		<script>
 		var scene, camera, renderer, mesh, clock;
 		var meshFloor, ambientLight, light;
@@ -52,9 +49,9 @@
 				mtl:"models/Pirateship.mtl",
 				mesh: null
 			},
-			uzi: {
-				obj:"models/uziGold.obj",
-				mtl:"models/uziGold.mtl",
+			m4a1: {
+				obj:"models/M4A1.obj",
+				mtl:"models/M4A1.mtl",
 				mesh: null,
 				castShadow:false
 			}
@@ -65,6 +62,7 @@
 
 		// Vetor das balas
 		var bullets = [];
+		var count = 0;
 
 		function init(){
 			scene = new THREE.Scene();
@@ -171,6 +169,7 @@
 			renderer.shadowMap.enabled = true;
 			renderer.shadowMap.type = THREE.BasicShadowMap;
 
+
 			document.body.appendChild(renderer.domElement);
 
 			animate();
@@ -205,15 +204,22 @@
 
 
 			// Arma do jogador
-			meshes["playerweapon"] = models.uzi.mesh.clone();
-			meshes["playerweapon"].position.set(0,2,0);
-			meshes["playerweapon"].scale.set(10,10,10);
+			meshes["playerweapon"] = models.m4a1.mesh.clone();
+			meshes["playerweapon"].position.set(0,0,0);
+			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
+			var i = 0;
+
+			for (i = meshes["playerweapon"].children.length - 1; i >= 0; i--) {
+				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
+			}
+
 			scene.add(meshes["playerweapon"]);
 		}
 
 		function animate(){
 
 			if( RESOURCES_LOADED == false ){
+
 				requestAnimationFrame(animate);
 
 
@@ -265,6 +271,7 @@
 				camera.rotation.y += player.turnSpeed;
 			}
 
+
 			// atirar uma balas - espaco
 			if(keyboard[32] && player.canShoot <= 0){ // spacebar key
 				// cria as balas
@@ -301,18 +308,37 @@
 				bullets.push(bullet);
 				scene.add(bullet);
 				player.canShoot = 10;
+
+			}
+			if(keyboard[32]){
+				if (count < 1000){
+					count = count + 80
+				}else{
+					if(count > 1000){
+						count  = 1000
+					}
+				}
+			}else{
+				if (count >= 1){
+					count = count - 50
+				}	
 			}
 			if(player.canShoot > 0) player.canShoot -= 1;
 
-			// position the gun in front of the camera
+
+			var change_position = 1 - Math.sin(count*Math.PI/2000)
+				
 			meshes["playerweapon"].position.set(
-				camera.position.x - Math.sin(camera.rotation.y + Math.PI/6) * 0.75,
-				camera.position.y - 0.5 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
-				camera.position.z + Math.cos(camera.rotation.y + Math.PI/6) * 0.75
+			camera.position.x - Math.sin(camera.rotation.y + Math.PI/3) * 0.4 * change_position  ,
+			camera.position.y - 0.47 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
+			camera.position.z + Math.cos(camera.rotation.y + Math.PI/3) * 0.4 * change_position
 			);
+
+
+			// position the gun in front of the camera
 			meshes["playerweapon"].rotation.set(
 				camera.rotation.x,
-				camera.rotation.y - Math.PI,
+				camera.rotation.y,
 				camera.rotation.z
 			);
 
