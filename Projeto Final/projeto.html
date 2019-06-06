@@ -96,6 +96,9 @@
 
 		var colliders   = []
 
+		var collisionEnter = false;
+		var collisionExit = false;
+
 
 
 		function init(){
@@ -229,18 +232,33 @@
 				collider.update()
 			})
 
+			if(mesh.name == "arma") {
+				collider.addEventListener('contactEnter', function(otherCollider){
+					console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('red');
+					otherCollider.helper.material.color.set('red');
+					collisionEnter = true;
 
-			collider.addEventListener('contactEnter', function(otherCollider){
-				console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
-				helper.material.color.set('red');
-				otherCollider.helper.material.color.set('red');
+				})
+				collider.addEventListener('contactExit', function(otherCollider){
+					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('green');
+					otherCollider.helper.material.color.set('green');
+					collisionExit = true;
+				})
+			} else {
+				collider.addEventListener('contactEnter', function(otherCollider){
+					console.log('contactEnter', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('red');
+					otherCollider.helper.material.color.set('red');
 
-			})
-			collider.addEventListener('contactExit', function(otherCollider){
-				console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
-				helper.material.color.set('green');
-				otherCollider.helper.material.color.set('green');
-			})
+				})
+				collider.addEventListener('contactExit', function(otherCollider){
+					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					helper.material.color.set('green');
+					otherCollider.helper.material.color.set('green');
+				})
+			}
 			
 			var helper	= new THREEx.ColliderHelper(collider)
 			helper.material.color.set('green')
@@ -301,15 +319,15 @@
 
 			// Arma do jogador
 			meshes["playerweapon"] = models.m4a1.mesh.clone();
-			meshes["playerweapon"].position.set(0,0,0);
-			// meshes["playerweapon"].position.set(
-			// 	camera.position.x,
-			// 	camera.position.y,
-			// 	camera.position.z
-			// );
-			// meshes["playerweapon"].name = "arma";
-			// meshes["playerweapon"].type = "solid";
-			// addCollider(meshes["playerweapon"]);
+			// meshes["playerweapon"].position.set(0,0,0);
+			meshes["playerweapon"].position.set(
+				camera.position.x,
+				camera.position.y,
+				camera.position.z
+			);
+			meshes["playerweapon"].name = "arma";
+			meshes["playerweapon"].type = "solid";
+			addCollider(meshes["playerweapon"]);
 			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
 			var i = 0;
 
@@ -363,6 +381,7 @@
 			prevPosition.x = camera.position.x;
 			prevPosition.y = camera.position.y;
 			prevPosition.z = camera.position.z;
+
 			if(keyboard[87]){ //tecla W
 				camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
 				camera.position.z -= -Math.cos(camera.rotation.y) * player.speed;
@@ -385,6 +404,27 @@
 			}
 			if(keyboard[39]){ // seta para direita
 				camera.rotation.y += player.turnSpeed;
+			}
+
+			var change_position = 1 - Math.sin(count*Math.PI/2000);
+			moveWeapon(time, change_position);
+			onRenderFcts.forEach(function(onRenderFct){
+				onRenderFct(1/1000, 1/1000)
+			});
+
+			console.log(collisionEnter, collisionExit);
+
+			if (!collisionExit && !collisionEnter) {
+				collisionEnter = false;
+				collisionExit = false;
+			} else if(collisionEnter && !collisionExit) {
+				undoMoveWeapon(prevPosition);
+			} else if(collisionEnter && collisionExit) {
+				collisionEnter = false;
+				collisionExit = false;
+			} else if(!collisionEnter && collisionExit) {
+				collisionEnter = false;
+				collisionExit = false;
 			}
 
 
@@ -446,7 +486,6 @@
 			if(player.canShoot > 0) player.canShoot -= 1;
 
 
-			var change_position = 1 - Math.sin(count*Math.PI/2000)
 				
 			moveWeapon(time,change_position);
 			onRenderFcts.forEach(function(onRenderFct){
@@ -456,6 +495,14 @@
 			renderer.render(scene, camera);
 		}
 
+		function undoMoveWeapon(prevPosition) {
+			camera.position.set(
+				prevPosition.x,
+				prevPosition.y,
+				prevPosition.z 
+			);
+		}
+
 		function moveWeapon(time, change_position) {
 			// position the gun in front of the camera
 			meshes["playerweapon"].position.set(
@@ -463,7 +510,6 @@
 			camera.position.y - 0.47 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
 			camera.position.z + Math.cos(camera.rotation.y + Math.PI/3) * 0.4 * change_position
 			);
-
 
 			// position the gun in front of the camera
 			meshes["playerweapon"].rotation.set(
