@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>Projeto CCI36</title>
-		<script type="text/javascript" src="js/three.min.js" ></script>
+		<script type="text/javascript" src="js/three.js" ></script>
 		<script type="text/javascript" src="js/MTLLoader.js" ></script>
 		<script type="text/javascript" src="js/OBJLoader.js" ></script>
 
@@ -74,7 +74,13 @@
 				mtl:"models/M4A1.mtl",
 				mesh: null,
 				castShadow:false
+			},
+			black_bear: {
+				obj:"models/monster/BEAR_BLK.obj",
+				mtl:"models/monster/BEAR_BLK.mtl",
+				mesh: null
 			}
+
 		};
 
 		// Meshes
@@ -182,6 +188,7 @@
 			}
 
 
+
 			camera.position.set(0, player.height, -5);
 			camera.lookAt(new THREE.Vector3(0,player.height,0));
 
@@ -197,23 +204,37 @@
 			animate();
 		}
 
+		function generate_bears() {
+			for (var i = 0; i < 10; i++) {
+				meshes["bears"].push( meshes["bear_model"].clone())
+				meshes["bears"][i].position.set(Math.floor(Math.random() * 100)-50,0,Math.floor(Math.random() * 100)-50)
+				meshes["bears"][i].rotation.set(0,Math.random() * 100,0)
+				scene.add(meshes["bears"][i]);
+			}
+		}
+
 
 		function onResourcesLoaded(){
 
 			//Clonar os modelos criados
-			meshes["tent1"] = models.tent.mesh.clone();
-			meshes["tent2"] = models.tent.mesh.clone();
+			meshes["bear_model"] = models.black_bear.mesh.clone();
+			meshes["bear_model"].children[0].material.color.setHex(0x8B4513);
+			meshes["bears"] = []
+			meshes["tent"] = models.tent.mesh.clone();
 			meshes["campfire1"] = models.campfire.mesh.clone();
 			meshes["campfire2"] = models.campfire.mesh.clone();
 			meshes["box"] = crate.clone()
 
 
-			// Posicionar cada modelo na cena
-			meshes["tent1"].position.set(-5, 0, 4);
-			scene.add(meshes["tent1"]);
 
-			meshes["tent2"].position.set(-8, 0, 4);
-			scene.add(meshes["tent2"]);
+			// Adicionar bears
+			generate_bears();
+			
+			
+			scene.add(meshes["bears"][0]);
+
+			meshes["tent"].position.set(-8, 0, 4);
+			scene.add(meshes["tent"]);
 
 			meshes["campfire1"].position.set(-5, 0, 1);
 			meshes["campfire2"].position.set(-8, 0, 1);
@@ -230,7 +251,7 @@
 			meshes["playerweapon"].position.set(0,0,0);
 			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
 			var i = 0;
-
+			// Pinta arma de preto	
 			for (i = meshes["playerweapon"].children.length - 1; i >= 0; i--) {
 				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
 			}
@@ -329,7 +350,7 @@
 				// add to scene, array, and set the delay to 10 frames
 				bullets.push(bullet);
 				scene.add(bullet);
-				player.canShoot = 10;
+				player.canShoot = 20;
 
 			}
 			if(keyboard[32]){
@@ -355,6 +376,8 @@
 			camera.position.y - 0.47 + Math.sin(time*4 + camera.position.x + camera.position.z)*0.01,
 			camera.position.z + Math.cos(camera.rotation.y + Math.PI/3) * 0.4 * change_position
 			);
+			light.position.set(camera.position.x- Math.sin(camera.rotation.y + Math.PI/3)*3,6,camera.position.z- Math.cos(camera.rotation.y + Math.PI/3) * 3);
+			light.rotation.set(camera.rotation.x,camera.rotation.y+Math.PI,camera.rotation.z);
 
 
 			// position the gun in front of the camera
