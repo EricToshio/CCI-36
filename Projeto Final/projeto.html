@@ -105,6 +105,17 @@
 		});
 
 
+		// ---------------------------------------------------------------------
+		var audioLoader2 = new THREE.AudioLoader();
+		var listener2 = new THREE.AudioListener();
+		var audio2 = new THREE.Audio( listener2 );
+		audioLoader2.load( 'sounds/gunshot.mp3', function ( buffer ) {
+			audio2.setBuffer( buffer );
+		} );
+		// ---------------------------------------------------------------------
+
+
+
 		// modelos
 		var models = {
 			tent: {
@@ -158,6 +169,7 @@
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
 			clock = new THREE.Clock();
 			camera.add( listener );
+			camera.add( listener2 );
 
 			loadingScreen.box.position.set(0,0,5);
 			loadingScreen.camera.lookAt(loadingScreen.box.position);
@@ -543,6 +555,7 @@
 					new THREE.MeshBasicMaterial({color:0xffffff})
 				);
 				bullet.name = "bullet";
+				audio2.play();
 				var a = addCollider(bullet);
 				bullet.collider = a[0];
 				bullet.helper = a[1];
