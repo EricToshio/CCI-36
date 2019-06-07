@@ -17,9 +17,23 @@
 	<body style="text-align:center;">
 
 		<!-- CRONOMETRO -->
+		<div>
+    		<table align="center">
+        		<tr>
+            		<td>
+            			<p>Pontos </p>
+                		<p class="clock1" style="margin:2em;"></p>
+            		</td>
+            		<td>
+            			<p>Tempo </p>
+                		<p class="clock" style="margin:2em;"></p>
+            		</td>
+        		</tr>
+    		</table>
+		</div>
 
-		<div class="clock1" style="margin:2em;"></div>
-		<div class="clock" style="margin:2em;"></div>
+		
+		
 		<div class="message" style= "font-size: 100px"></div>
 
 		<script type="text/javascript">
@@ -33,7 +47,7 @@
 				});
 
 				// Instantiate a counter
-				clock = $('.clock').FlipClock(60, {
+				clock = $('.clock').FlipClock(90, {
 			        clockFace: 'MinuteCounter',
 			        countdown: true,
 			        callbacks: {
