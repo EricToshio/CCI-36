@@ -87,6 +87,24 @@
 		var loadingManager = null;
 		var RESOURCES_LOADED = false;
 
+
+
+		// create an AudioListener and add it to the camera
+		var listener = new THREE.AudioListener();
+
+		// create a global audio source
+		var sound = new THREE.Audio( listener );
+
+		// load a sound and set it as the Audio object's buffer
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'sounds/forest.mp3', function( buffer ) {
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 0.5 );
+			sound.play();
+		});
+
+
 		// modelos
 		var models = {
 			tent: {
@@ -139,6 +157,7 @@
 			scene.fog = new THREE.FogExp2( 0xffffff, 0.065 );
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
 			clock = new THREE.Clock();
+			camera.add( listener );
 
 			loadingScreen.box.position.set(0,0,5);
 			loadingScreen.camera.lookAt(loadingScreen.box.position);
