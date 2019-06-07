@@ -20,7 +20,6 @@
 
 		<div class="clock1" style="margin:2em;"></div>
 		<div class="clock" style="margin:2em;"></div>
-		<button type="button" class="increment" style="margin: 25px; font-size: 20px; padding: 15px;">+1</button>
 		<div class="message" style= "font-size: 100px"></div>
 
 		<script type="text/javascript">
@@ -34,7 +33,7 @@
 				});
 
 				// Instantiate a counter
-				clock = $('.clock').FlipClock(5, {
+				clock = $('.clock').FlipClock(60, {
 			        clockFace: 'MinuteCounter',
 			        countdown: true,
 			        callbacks: {
@@ -43,13 +42,6 @@
 			        	}
 			        }
 			    });
-
-				$('.increment').click(function() {
-
-					clock1.increment();
-
-				});
-
 
 			});
 
@@ -289,6 +281,9 @@
 				meshes["bears"].push( meshes["bear_model"].clone())
 				meshes["bears"][i].position.set(Math.floor(Math.random() * 100)-50,0,Math.floor(Math.random() * 100)-50)
 				meshes["bears"][i].rotation.set(0,Math.random() * 100,0)
+				meshes["bears"][i].name = "bear";
+				meshes["bears"][i].type = "target";
+				addCollider(meshes["bears"][i]);
 				scene.add(meshes["bears"][i]);
 			}
 		}
@@ -298,6 +293,8 @@
 		function addCollider(mesh) {
 			var box3 = new THREE.Box3().setFromObject(mesh);
 			var collider = new THREEx.ColliderBox3(mesh, box3)
+			collider.type = mesh.type
+			collider.mesh = mesh
 			add_collider_to_list(collider);
 			mesh.collider = collider;
 
@@ -324,6 +321,12 @@
 				})
 				collider.addEventListener('contactExit', function(otherCollider){
 					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					if(otherCollider.type == "target"){
+						scene.remove(otherCollider.mesh);
+						remove_helper_from_list(otherCollider.helper);
+						remove_collider_from_list(otherCollider);
+						clock1.increment();
+					}
 					helper.material.color.set('green');
 					otherCollider.helper.material.color.set('green');
 				})
@@ -332,7 +335,7 @@
 			var helper	= new THREEx.ColliderHelper(collider)
 			helper.material.color.set('green')
 			
-			scene.add(helper)
+			//scene.add(helper)
 			add_helper_to_list(helper);
 			collider.helper = helper;
 			mesh.helper = helper;
@@ -446,7 +449,7 @@
 			var i = 0;
 			// Pinta arma de preto
 			for (i = meshes["playerweapon"].children.length - 1; i >= 0; i--) {
-				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
+				meshes["playerweapon"].children[i].material.color.setHex(0x808080);
 			}
 
 
@@ -552,7 +555,7 @@
 				// cria as balas
 				var bullet = new THREE.Mesh(
 					new THREE.SphereGeometry(0.05,8,8),
-					new THREE.MeshBasicMaterial({color:0xffffff})
+					new THREE.MeshBasicMaterial({color:0x000000})
 				);
 				bullet.name = "bullet";
 				audio2.play();
