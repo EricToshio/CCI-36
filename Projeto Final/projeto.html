@@ -17,10 +17,23 @@
 	<body style="text-align:center;">
 
 		<!-- CRONOMETRO -->
+		<div>
+    		<table align="center">
+        		<tr>
+            		<td>
+            			<p>Pontos </p>
+                		<p class="clock1" style="margin:2em;"></p>
+            		</td>
+            		<td>
+            			<p>Tempo </p>
+                		<p class="clock" style="margin:2em;"></p>
+            		</td>
+        		</tr>
+    		</table>
+		</div>
 
-		<div class="clock1" style="margin:2em;"></div>
-		<div class="clock" style="margin:2em;"></div>
-		<button type="button" class="increment" style="margin: 25px; font-size: 20px; padding: 15px;">+1</button>
+
+
 		<div class="message" style= "font-size: 100px"></div>
 
 		<script type="text/javascript">
@@ -34,7 +47,7 @@
 				});
 
 				// Instantiate a counter
-				clock = $('.clock').FlipClock(5, {
+				clock = $('.clock').FlipClock(90, {
 			        clockFace: 'MinuteCounter',
 			        countdown: true,
 			        callbacks: {
@@ -43,13 +56,6 @@
 			        	}
 			        }
 			    });
-
-				$('.increment').click(function() {
-
-					clock1.increment();
-
-				});
-
 
 			});
 
@@ -86,6 +92,35 @@
 		};
 		var loadingManager = null;
 		var RESOURCES_LOADED = false;
+
+
+
+		// create an AudioListener and add it to the camera
+		var listener = new THREE.AudioListener();
+
+		// create a global audio source
+		var sound = new THREE.Audio( listener );
+
+		// load a sound and set it as the Audio object's buffer
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'sounds/forest.mp3', function( buffer ) {
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 0.5 );
+			sound.play();
+		});
+
+
+		// ---------------------------------------------------------------------
+		var audioLoader2 = new THREE.AudioLoader();
+		var listener2 = new THREE.AudioListener();
+		var audio2 = new THREE.Audio( listener2 );
+		audioLoader2.load( 'sounds/gunshot.mp3', function ( buffer ) {
+			audio2.setBuffer( buffer );
+		} );
+		// ---------------------------------------------------------------------
+
+
 
 		// modelos
 		var models = {
@@ -139,6 +174,8 @@
 			scene.fog = new THREE.FogExp2( 0xffffff, 0.065 );
 			camera = new THREE.PerspectiveCamera(90, 1280/720, 0.1, 1000);
 			clock = new THREE.Clock();
+			camera.add( listener );
+			camera.add( listener2 );
 
 			loadingScreen.box.position.set(0,0,5);
 			loadingScreen.camera.lookAt(loadingScreen.box.position);
@@ -258,6 +295,9 @@
 				meshes["bears"].push( meshes["bear_model"].clone())
 				meshes["bears"][i].position.set(Math.floor(Math.random() * 100)-50,0,Math.floor(Math.random() * 100)-50)
 				meshes["bears"][i].rotation.set(0,Math.random() * 100,0)
+				meshes["bears"][i].name = "bear";
+				meshes["bears"][i].type = "target";
+				addCollider(meshes["bears"][i]);
 				scene.add(meshes["bears"][i]);
 			}
 		}
@@ -267,6 +307,8 @@
 		function addCollider(mesh) {
 			var box3 = new THREE.Box3().setFromObject(mesh);
 			var collider = new THREEx.ColliderBox3(mesh, box3)
+			collider.type = mesh.type
+			collider.mesh = mesh
 			add_collider_to_list(collider);
 			mesh.collider = collider;
 
@@ -293,6 +335,12 @@
 				})
 				collider.addEventListener('contactExit', function(otherCollider){
 					console.log('contactExit', collider.object3d.name, 'with', otherCollider.object3d.name);
+					if(otherCollider.type == "target"){
+						scene.remove(otherCollider.mesh);
+						remove_helper_from_list(otherCollider.helper);
+						remove_collider_from_list(otherCollider);
+						clock1.increment();
+					}
 					helper.material.color.set('green');
 					otherCollider.helper.material.color.set('green');
 				})
@@ -300,8 +348,8 @@
 
 			var helper	= new THREEx.ColliderHelper(collider)
 			helper.material.color.set('green')
-			
-			scene.add(helper)
+
+			//scene.add(helper)
 			add_helper_to_list(helper);
 			collider.helper = helper;
 			mesh.helper = helper;
@@ -356,11 +404,15 @@
 			meshes["tent1"].name = "tent1";
 			meshes["tent1"].type = "solid";
 			addCollider(meshes["tent1"]);
+			meshes["tent1"].position.set(-8, 0, 4);
+			scene.add(meshes["tent1"]);
 
 			meshes["tent2"] = models.tent.mesh.clone();
 			meshes["tent2"].name = "tent2";
 			meshes["tent2"].type = "solid";
 			addCollider(meshes["tent2"]);
+			meshes["tent2"].position.set(-5, 0, 4);
+			scene.add(meshes["tent2"]);
 
 
 			meshes["campfire1"] = models.campfire.mesh.clone();
@@ -377,8 +429,162 @@
 			meshes["box"].name = "box";
 			meshes["box"].type = "solid";
 			addCollider(meshes["box"]);
+			meshes["box"].position.set(-5, 1.5, -10);
+			scene.add(meshes["box"]);
+
+			meshes["box2"] = crate.clone();
+			meshes["box2"].name = "box2";
+			meshes["box2"].type = "solid";
+			addCollider(meshes["box2"]);
+			meshes["box2"].position.set(-5, 4.5, -10);
+			scene.add(meshes["box2"]);
+
+			meshes["box21"] = crate.clone();
+			meshes["box21"].name = "box21";
+			meshes["box21"].type = "solid";
+			addCollider(meshes["box21"]);
+			meshes["box21"].position.set(-5, 7.5, -10);
+			scene.add(meshes["box21"]);
+
+			meshes["box3"] = crate.clone();
+			meshes["box3"].name = "box3";
+			meshes["box3"].type = "solid";
+			addCollider(meshes["box3"]);
+			meshes["box3"].position.set(-8, 1.5, -10);
+			scene.add(meshes["box3"]);
+
+			meshes["box31"] = crate.clone();
+			meshes["box31"].name = "box31";
+			meshes["box31"].type = "solid";
+			addCollider(meshes["box31"]);
+			meshes["box31"].position.set(-8, 4.5, -10);
+			scene.add(meshes["box31"]);
+
+			meshes["box4"] = crate.clone();
+			meshes["box4"].name = "box4";
+			meshes["box4"].type = "solid";
+			addCollider(meshes["box4"]);
+			meshes["box4"].position.set(-11, 1.5, -10);
+			scene.add(meshes["box4"]);
 
 
+			var boxGroup = new THREE.Group();
+			meshes["box3"] = crate.clone();
+			meshes["box3"].name = "box3";
+			meshes["box3"].type = "solid";
+			addCollider(meshes["box3"]);
+			meshes["box3"].position.set(-8, 1.5, -10);
+			boxGroup.add(meshes["box3"]);
+
+			meshes["box31"] = crate.clone();
+			meshes["box31"].name = "box31";
+			meshes["box31"].type = "solid";
+			addCollider(meshes["box31"]);
+			meshes["box31"].position.set(-8, 4.5, -10);
+			boxGroup.add(meshes["box31"]);
+
+			meshes["box4"] = crate.clone();
+			meshes["box4"].name = "box4";
+			meshes["box4"].type = "solid";
+			addCollider(meshes["box4"]);
+			meshes["box4"].position.set(-11, 1.5, -10);
+			boxGroup.add(meshes["box4"]);
+
+			boxGroup.position.set(20,0,-10);
+			scene.add(boxGroup);
+
+			var boxGroupa = new THREE.Group();
+			meshes["box3"] = crate.clone();
+			meshes["box3"].name = "box3";
+			meshes["box3"].type = "solid";
+			addCollider(meshes["box3"]);
+			meshes["box3"].position.set(-8, 1.5, -10);
+			boxGroupa.add(meshes["box3"]);
+
+			meshes["box31"] = crate.clone();
+			meshes["box31"].name = "box31";
+			meshes["box31"].type = "solid";
+			addCollider(meshes["box31"]);
+			meshes["box31"].position.set(-8, 4.5, -10);
+			boxGroupa.add(meshes["box31"]);
+
+			meshes["box4"] = crate.clone();
+			meshes["box4"].name = "box4";
+			meshes["box4"].type = "solid";
+			addCollider(meshes["box4"]);
+			meshes["box4"].position.set(-11, 1.5, -10);
+			boxGroupa.add(meshes["box4"]);
+
+			boxGroupa.position.set(-30,0,-10);
+			scene.add(boxGroupa);
+
+
+
+			meshes["box5"] = crate.clone();
+			meshes["box5"].name = "box5";
+			meshes["box5"].type = "solid";
+			addCollider(meshes["box5"]);
+			meshes["box5"].position.set(10, 1.5, -7);
+			scene.add(meshes["box5"]);
+
+
+			var boxGroupb = new THREE.Group();
+			meshes["box3"] = crate.clone();
+			meshes["box3"].name = "box3";
+			meshes["box3"].type = "solid";
+			addCollider(meshes["box3"]);
+			meshes["box3"].position.set(-8, 1.5, -10);
+			boxGroupb.add(meshes["box3"]);
+
+			meshes["box31"] = crate.clone();
+			meshes["box31"].name = "box31";
+			meshes["box31"].type = "solid";
+			addCollider(meshes["box31"]);
+			meshes["box31"].position.set(-8, 4.5, -10);
+			boxGroupb.add(meshes["box31"]);
+
+			meshes["box4"] = crate.clone();
+			meshes["box4"].name = "box4";
+			meshes["box4"].type = "solid";
+			addCollider(meshes["box4"]);
+			meshes["box4"].position.set(-11, 1.5, -10);
+			boxGroupb.add(meshes["box4"]);
+
+			boxGroupb.position.set(25,0,30);
+			scene.add(boxGroupb);
+
+			var boxGroupc = new THREE.Group();
+			meshes["box3"] = crate.clone();
+			meshes["box3"].name = "box3";
+			meshes["box3"].type = "solid";
+			addCollider(meshes["box3"]);
+			meshes["box3"].position.set(-8, 1.5, -10);
+			boxGroupc.add(meshes["box3"]);
+
+			meshes["box31"] = crate.clone();
+			meshes["box31"].name = "box31";
+			meshes["box31"].type = "solid";
+			addCollider(meshes["box31"]);
+			meshes["box31"].position.set(-8, 4.5, -10);
+			boxGroupc.add(meshes["box31"]);
+
+			meshes["box4"] = crate.clone();
+			meshes["box4"].name = "box4";
+			meshes["box4"].type = "solid";
+			addCollider(meshes["box4"]);
+			meshes["box4"].position.set(-11, 1.5, -10);
+			boxGroupc.add(meshes["box4"]);
+
+			boxGroupc.position.set(-20,0,30);
+			scene.add(boxGroupc);
+
+
+			meshes["box6"] = crate.clone();
+			meshes["box6"].name = "box6";
+			meshes["box6"].type = "solid";
+			addCollider(meshes["box6"]);
+			meshes["box6"].position.set(-20, 1.5, 5);
+			scene.add(meshes["box6"]);
 			// Adicionar bears
 			generate_bears();
 
@@ -415,7 +621,7 @@
 			var i = 0;
 			// Pinta arma de preto
 			for (i = meshes["playerweapon"].children.length - 1; i >= 0; i--) {
-				meshes["playerweapon"].children[i].material.color.setHex(0x000000);
+				meshes["playerweapon"].children[i].material.color.setHex(0x808080);
 			}
 
 
@@ -521,9 +727,10 @@
 				// cria as balas
 				var bullet = new THREE.Mesh(
 					new THREE.SphereGeometry(0.05,8,8),
-					new THREE.MeshBasicMaterial({color:0xffffff})
+					new THREE.MeshBasicMaterial({color:0x000000})
 				);
 				bullet.name = "bullet";
+				audio2.play();
 				var a = addCollider(bullet);
 				bullet.collider = a[0];
 				bullet.helper = a[1];
