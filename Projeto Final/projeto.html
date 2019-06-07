@@ -47,7 +47,7 @@
 				});
 
 				// Instantiate a counter
-				clock = $('.clock').FlipClock(90, {
+				clock = $('.clock').FlipClock(30, {
 			        clockFace: 'MinuteCounter',
 			        countdown: true,
 			        callbacks: {
@@ -291,7 +291,7 @@
 
 
 		function generate_bears() {
-			for (var i = 0; i < 10; i++) {
+			for (var i = 0; i < 25; i++) {
 				meshes["bears"].push( meshes["bear_model"].clone())
 				meshes["bears"][i].position.set(Math.floor(Math.random() * 100)-50,0,Math.floor(Math.random() * 100)-50)
 				meshes["bears"][i].rotation.set(0,Math.random() * 100,0)
@@ -341,6 +341,13 @@
 						remove_collider_from_list(otherCollider);
 						clock1.increment();
 					}
+					if(otherCollider.type == "solid"){
+						scene.remove(collider.mesh);
+						remove_helper_from_list(collider.helper);
+						remove_collider_from_list(collider);
+					}
+					
+					
 					helper.material.color.set('green');
 					otherCollider.helper.material.color.set('green');
 				})
@@ -457,7 +464,7 @@
 				camera.position.z
 			);
 			meshes["playerweapon"].name = "arma";
-			meshes["playerweapon"].type = "solid";
+			meshes["playerweapon"].type = "solid1";
 			addCollider(meshes["playerweapon"]);
 			meshes["playerweapon"].scale.set(0.1,0.1,0.1);
 			var i = 0;
@@ -540,6 +547,15 @@
 			if(keyboard[39]){ // seta para direita
 				camera.rotation.y += player.turnSpeed;
 			}
+			if(keyboard[81]){ // seta para direita
+				if (mirando){
+					mirando = false;
+					player.speed = 0.2
+				}else{
+					mirando = true;
+					player.speed = 0.1;
+				}
+			}
 
 			var change_position = 1 - Math.sin(count*Math.PI/2000);
 			moveWeapon(time, change_position);
@@ -607,7 +623,7 @@
 				player.canShoot = 20;
 
 			}
-			if(keyboard[32]){
+			if(mirando){
 				if (count < 1000){
 					count = count + 80
 				}else{
@@ -658,6 +674,7 @@
 				camera.rotation.z
 			);
 		}
+		var mirando
 
 		function keyDown(event){
 			keyboard[event.keyCode] = true;
