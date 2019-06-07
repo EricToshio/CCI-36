@@ -80,7 +80,7 @@
 		// detectPlayerCollision =
 
 		var keyboard = {};
-		var player = { height:1.8, speed:0.2, turnSpeed:Math.PI*0.02, canShoot:0 };
+		var player = { height:1.8, speed:0.4, turnSpeed:Math.PI*0.02, canShoot:0 };
 		var USE_WIREFRAME = false;
 
 		var loadingScreen = {
@@ -447,13 +447,6 @@
 			meshes["box2"].position.set(-5, 4.5, -10);
 			scene.add(meshes["box2"]);
 
-			meshes["box21"] = crate.clone();
-			meshes["box21"].name = "box21";
-			meshes["box21"].type = "solid";
-			addCollider(meshes["box21"]);
-			meshes["box21"].position.set(-5, 7.5, -10);
-			scene.add(meshes["box21"]);
-
 			meshes["box3"] = crate.clone();
 			meshes["box3"].name = "box3";
 			meshes["box3"].type = "solid";
@@ -501,30 +494,6 @@
 			boxGroup.position.set(20,0,-10);
 			scene.add(boxGroup);
 
-			var boxGroupa = new THREE.Group();
-			meshes["box3"] = crate.clone();
-			meshes["box3"].name = "box3";
-			meshes["box3"].type = "solid";
-			addCollider(meshes["box3"]);
-			meshes["box3"].position.set(-8, 1.5, -10);
-			boxGroupa.add(meshes["box3"]);
-
-			meshes["box31"] = crate.clone();
-			meshes["box31"].name = "box31";
-			meshes["box31"].type = "solid";
-			addCollider(meshes["box31"]);
-			meshes["box31"].position.set(-8, 4.5, -10);
-			boxGroupa.add(meshes["box31"]);
-
-			meshes["box4"] = crate.clone();
-			meshes["box4"].name = "box4";
-			meshes["box4"].type = "solid";
-			addCollider(meshes["box4"]);
-			meshes["box4"].position.set(-11, 1.5, -10);
-			boxGroupa.add(meshes["box4"]);
-
-			boxGroupa.position.set(-30,0,-10);
-			scene.add(boxGroupa);
 
 
 
@@ -560,31 +529,6 @@
 
 			boxGroupb.position.set(25,0,30);
 			scene.add(boxGroupb);
-
-			var boxGroupc = new THREE.Group();
-			meshes["box3"] = crate.clone();
-			meshes["box3"].name = "box3";
-			meshes["box3"].type = "solid";
-			addCollider(meshes["box3"]);
-			meshes["box3"].position.set(-8, 1.5, -10);
-			boxGroupc.add(meshes["box3"]);
-
-			meshes["box31"] = crate.clone();
-			meshes["box31"].name = "box31";
-			meshes["box31"].type = "solid";
-			addCollider(meshes["box31"]);
-			meshes["box31"].position.set(-8, 4.5, -10);
-			boxGroupc.add(meshes["box31"]);
-
-			meshes["box4"] = crate.clone();
-			meshes["box4"].name = "box4";
-			meshes["box4"].type = "solid";
-			addCollider(meshes["box4"]);
-			meshes["box4"].position.set(-11, 1.5, -10);
-			boxGroupc.add(meshes["box4"]);
-
-			boxGroupc.position.set(-20,0,30);
-			scene.add(boxGroupc);
 
 
 			meshes["box6"] = crate.clone();
@@ -774,17 +718,17 @@
 				setTimeout(function(){
 					bullet.alive = false;
 					scene.remove(bullet);
-				}, 1000);
+				}, 3000);
 
 				// add to scene, array, and set the delay to 10 frames
 				bullets.push(bullet);
 				scene.add(bullet);
-				player.canShoot = 20;
+				player.canShoot = 7;
 
 			}
 			if(mirando){
 				if (count < 1000){
-					count = count + 80
+					count = count + 600
 				}else{
 					if(count > 1000){
 						count  = 1000
@@ -792,7 +736,7 @@
 				}
 			}else{
 				if (count >= 1){
-					count = count - 50
+					count = count - 600
 				}
 			}
 			if(player.canShoot > 0) player.canShoot -= 1;
